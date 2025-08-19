@@ -137,12 +137,14 @@ export default class WarCalculations implements IWarCalculations {
     const defTankStr = defender.military.tanks * 40 * airSuperiorityFactor
     const defSoldStr = Math.max(50, defender.military.soldiers * (defender.resources.munitions > 0 ? 1.75 : 1))
 
-    // Use the proper roll value from P&W formula (not just rollsWon)
+    // Use the EXACT P&W roll value from the roll function (0-3)
     const roll = battleOutcome.rollValue
+    
+    // EXACT damage factor calculations from WarNation.java
     const attFactor = (1680 * (3 - roll) + 1800 * roll) / 3
     const defFactor = 1680 + (1800 - attFactor)
 
-    // EXACT Tank loss calculations from P&W documentation
+    // EXACT Tank loss calculations from P&W source code
     const defTankLoss = Math.floor(
       Math.min(
         defender.military.tanks,
@@ -157,7 +159,7 @@ export default class WarCalculations implements IWarCalculations {
       )
     )
 
-    // EXACT Soldier loss calculations from P&W documentation
+    // EXACT Soldier loss calculations from P&W source code
     const defSoldierLoss = Math.floor(
       Math.min(
         defender.military.soldiers,
