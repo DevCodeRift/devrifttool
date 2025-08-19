@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function GET(request: NextRequest) {
   try {
     // Check if supabase admin is available
@@ -15,6 +16,7 @@ export async function GET(request: NextRequest) {
 
     // Test 1: Basic connection
     console.log('Testing Supabase connection...')
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { data: connectionTest, error: connectionError } = await supabaseAdmin
       .from('battle_rooms')
       .select('count')

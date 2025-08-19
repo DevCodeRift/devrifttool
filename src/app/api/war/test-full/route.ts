@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function GET(request: NextRequest) {
   try {
     if (!supabaseAdmin) {

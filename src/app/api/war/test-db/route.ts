@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function GET(request: NextRequest) {
   try {
     if (!supabaseAdmin) {
@@ -11,6 +12,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Test 1: Check if we can connect to Supabase
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { data: connectionTest, error: connectionError } = await supabaseAdmin
       .from('battle_rooms')
       .select('count')
@@ -26,6 +28,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Test 2: Check table structure
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { data: tableInfo, error: tableError } = await supabaseAdmin
       .from('battle_rooms')
       .select('*')

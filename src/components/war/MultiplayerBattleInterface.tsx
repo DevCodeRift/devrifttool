@@ -1,11 +1,22 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { BattleLog, ActionType } from '@/types/war'
+import { BattleLog, ActionType, Nation } from '@/types/war'
 import { multiplayerBattleManager, MultiplayerBattleRoom, BattleRoomPlayer } from '@/lib/multiplayer-battle-manager'
 import NationStatus from './NationStatus'
 import BattleActions from './BattleActions'
 import BattleLogDisplay from './BattleLogDisplay'
+
+// Player interface for API response
+interface ApiPlayer {
+  id: string
+  playerName: string
+  side: 'attacker' | 'defender' | null
+  nationData: Nation | null
+  isHost: boolean
+  isReady: boolean
+  isSpectator: boolean
+}
 
 interface MultiplayerBattleInterfaceProps {
   roomId: string
@@ -58,7 +69,8 @@ export default function MultiplayerBattleInterface({
     }, 1000)
 
     return () => clearInterval(timer)
-  }, [room?.status, room?.settings?.turnDuration, totalTurns])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [room?.status, room?.settings?.turnDuration])
 
   // Reset timer when room changes or starts
   useEffect(() => {
@@ -67,29 +79,6 @@ export default function MultiplayerBattleInterface({
       setTotalTurns(room.current_turn || 0)
     }
   }, [room?.status, room?.current_turn, room?.settings?.turnDuration])
-
-  const skipTurn = async () => {
-    try {
-      const response = await fetch('/api/battle/action', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          roomId,
-          playerId,
-          actionType: 'skip_turn',
-          actionData: {}
-        })
-      })
-
-      if (!response.ok) {
-        console.error('Failed to skip turn')
-      }
-    } catch (error) {
-      console.error('Error skipping turn:', error)
-    }
-  }
 
   // Subscribe to room updates
   useEffect(() => {
@@ -131,7 +120,7 @@ export default function MultiplayerBattleInterface({
             
             // Set players data - transform from API format to expected format
             if (data.players) {
-              const transformedPlayers = data.players.map((p: any) => ({
+              const transformedPlayers = data.players.map((p: ApiPlayer) => ({
                 id: p.id,
                 room_id: roomId,
                 player_id: p.id,
