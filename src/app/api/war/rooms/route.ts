@@ -4,6 +4,9 @@ import { BattleSettings, Nation } from '@/types/war'
 
 // Ensure supabase admin client is available
 if (!supabaseAdmin) {
+  console.error('Supabase admin client not initialized - Environment variables check:')
+  console.error('NEXT_PUBLIC_SUPABASE_URL:', !!process.env.NEXT_PUBLIC_SUPABASE_URL)
+  console.error('SUPABASE_SERVICE_ROLE_KEY:', !!process.env.SUPABASE_SERVICE_ROLE_KEY)
   throw new Error('Supabase admin client not initialized - check environment variables')
 }
 
@@ -37,17 +40,27 @@ export async function GET(request: NextRequest) {
     const roomId = searchParams.get('roomId')
 
     if (roomId) {
-      // Get specific room with players
-      const { data: room, error: roomError } = await supabase
+      // Get specific room with players - support both UUID and room_code lookups
+      let roomQuery = supabase
         .from('battle_rooms')
         .select(`
           *,
           battle_room_players(*)
         `)
-        .eq('id', roomId)
-        .single()
+      
+      // Check if roomId looks like a UUID, otherwise assume it's a room_code
+      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(roomId)
+      
+      if (isUUID) {
+        roomQuery = roomQuery.eq('id', roomId)
+      } else {
+        roomQuery = roomQuery.eq('room_code', roomId)
+      }
+      
+      const { data: room, error: roomError } = await roomQuery.single()
 
       if (roomError || !room) {
+        console.log('Room not found:', { roomId, isUUID, error: roomError })
         return NextResponse.json({ error: 'Room not found' }, { status: 404 })
       }
 
@@ -148,12 +161,32 @@ export async function GET(request: NextRequest) {
 // POST /api/war/rooms - Create a new room
 export async function POST(request: NextRequest) {
   try {
+    console.log('POST /api/war/rooms - Starting room creation')
+    
+    // Check supabase availability first
+    if (!supabase) {
+      console.error('Supabase client not available in POST handler')
+      return NextResponse.json({ 
+        error: 'Database connection not available',
+        debug: {
+          hasUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+          hasServiceKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+          nodeEnv: process.env.NODE_ENV
+        }
+      }, { status: 500 })
+    }
+
     const body = await request.json()
+    console.log('Request body:', body)
+    
     const { roomId, hostName, settings, playerId } = body
 
     if (!roomId || !hostName || !settings || !playerId) {
+      console.log('Missing required fields:', { roomId: !!roomId, hostName: !!hostName, settings: !!settings, playerId: !!playerId })
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
+
+    console.log('Creating room with data:', { roomId, hostName, playerId })
 
     // Create room
     const { data: newRoom, error: roomError } = await supabase
@@ -168,8 +201,17 @@ export async function POST(request: NextRequest) {
 
     if (roomError) {
       console.error('Error creating room:', roomError)
-      return NextResponse.json({ error: 'Failed to create room' }, { status: 500 })
+      return NextResponse.json({ 
+        error: 'Failed to create room',
+        debug: {
+          code: roomError.code,
+          message: roomError.message,
+          details: roomError.details
+        }
+      }, { status: 500 })
     }
+
+    console.log('Room created successfully:', newRoom)
 
     // Add host as player
     const { error: playerError } = await supabase
@@ -185,13 +227,27 @@ export async function POST(request: NextRequest) {
       console.error('Error adding host player:', playerError)
       // Clean up room if player creation failed
       await supabase.from('battle_rooms').delete().eq('id', newRoom.id)
-      return NextResponse.json({ error: 'Failed to add host player' }, { status: 500 })
+      return NextResponse.json({ 
+        error: 'Failed to add host player',
+        debug: {
+          code: playerError.code,
+          message: playerError.message,
+          details: playerError.details
+        }
+      }, { status: 500 })
     }
 
-    return NextResponse.json({ success: true, roomId: newRoom.id })
+    console.log('Host player added successfully')
+    return NextResponse.json({ success: true, roomId: newRoom.room_code })
   } catch (error) {
     console.error('Error in POST /api/war/rooms:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ 
+      error: 'Internal server error',
+      debug: {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined
+      }
+    }, { status: 500 })
   }
 }
 

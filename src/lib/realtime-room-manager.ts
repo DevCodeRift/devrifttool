@@ -97,9 +97,9 @@ class RealTimeRoomManager {
   }
 
   // Create a new room
-  // Create a new room
   async createRoom(roomId: string, hostName: string, settings: BattleSettings, playerId: string): Promise<Room | null> {
     try {
+      console.log('Creating room with ID:', roomId)
       const response = await fetch(`${this.baseUrl}/rooms`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -111,12 +111,40 @@ class RealTimeRoomManager {
         })
       })
       
-      if (!response.ok) throw new Error('Failed to create room')
+      console.log('Room creation response status:', response.status)
       
-      // Immediately fetch the created room to avoid extra API call
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error('Room creation failed with status:', response.status, 'Body:', errorText)
+        
+        // Even if the API returns an error, try to fetch the room in case it was actually created
+        console.log('Attempting to fetch room despite API error...')
+        const room = await this.getRoom(roomId)
+        if (room) {
+          console.log('Room was actually created despite API error:', room.id)
+          return room
+        }
+        
+        throw new Error(`Failed to create room: ${response.status} - ${errorText}`)
+      }
+      
+      console.log('Room creation successful, fetching room data...')
       return await this.getRoom(roomId)
     } catch (error) {
       console.error('Error creating room:', error)
+      
+      // As a final fallback, try to fetch the room in case it was created despite the error
+      try {
+        console.log('Final fallback: attempting to fetch room...')
+        const room = await this.getRoom(roomId)
+        if (room) {
+          console.log('Room found in fallback fetch:', room.id)
+          return room
+        }
+      } catch (fallbackError) {
+        console.error('Fallback fetch also failed:', fallbackError)
+      }
+      
       return null
     }
   }

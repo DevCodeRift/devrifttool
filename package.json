@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "setup:env": "node setup-env.js",
     "version:bump": "node scripts/increment-version.js",
     "version:current": "node -e \"console.log('Current version:', JSON.parse(require('fs').readFileSync('version.json')).stage + ' v' + JSON.parse(require('fs').readFileSync('version.json')).version)\"",
     "deploy": "node scripts/deploy.js",

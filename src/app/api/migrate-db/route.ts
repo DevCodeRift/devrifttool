@@ -62,7 +62,7 @@ export async function POST() {
         CREATE TABLE battle_room_players (
           id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
           room_id UUID NOT NULL REFERENCES battle_rooms(id) ON DELETE CASCADE,
-          player_id UUID NOT NULL,
+          player_id VARCHAR(100) NOT NULL,
           player_name VARCHAR(100) NOT NULL,
           side VARCHAR(20) CHECK (side IN ('attacker', 'defender')),
           nation_data JSONB,
