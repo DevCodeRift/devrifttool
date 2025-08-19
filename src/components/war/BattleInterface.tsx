@@ -31,8 +31,7 @@ export default function BattleInterface({
   maxTurns,
   onReset,
   setNation1,
-  setNation2,
-  battleSettings
+  setNation2
 }: BattleInterfaceProps) {
   const [activeNation, setActiveNation] = useState<1 | 2>(1)
   const [warOver, setWarOver] = useState(false)

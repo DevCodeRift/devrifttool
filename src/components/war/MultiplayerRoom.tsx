@@ -84,7 +84,7 @@ export default function MultiplayerRoom({
         // Create new room
         await createRoom()
       }
-    } catch (err) {
+    } catch {
       setError('Failed to initialize room')
     } finally {
       setInitializing(false)
@@ -175,7 +175,7 @@ export default function MultiplayerRoom({
       } else {
         setError('Failed to select side')
       }
-    } catch (err) {
+    } catch {
       setError('Failed to select side')
     } finally {
       setSelectingSide(false)
@@ -487,7 +487,7 @@ export default function MultiplayerRoom({
                   </button>
                 </div>
                 <p className="text-xs text-gray-400 mt-1">
-                  Enter a Politics and War nation ID. Try "1" to test with nation Avalon.
+                  Enter a Politics and War nation ID. Try &quot;1&quot; to test with nation Avalon.
                 </p>
               </div>
 

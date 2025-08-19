@@ -125,7 +125,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create room
-    const { data: roomData, error: roomError } = await supabase
+    const { error: roomError } = await supabase
       .from('rooms')
       .insert({
         id: roomId,

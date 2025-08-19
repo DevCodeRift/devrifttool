@@ -26,15 +26,16 @@ export default function NationSetup({ onWarStart, onMultiplayerRoom }: NationSet
     isPrivate: false
   })
 
-  const turnDurationOptions = [
-    { value: 30, label: '30 seconds' },
-    { value: 60, label: '1 minute' },
-    { value: 120, label: '2 minutes' },
-    { value: 300, label: '5 minutes' },
-    { value: 600, label: '10 minutes' },
-    { value: 900, label: '15 minutes' },
-    { value: 1800, label: '30 minutes' }
-  ]
+  // Turn duration options for game configuration
+  // const turnDurationOptions = [
+  //   { value: 30, label: '30 seconds' },
+  //   { value: 60, label: '1 minute' },
+  //   { value: 120, label: '2 minutes' },
+  //   { value: 300, label: '5 minutes' },
+  //   { value: 600, label: '10 minutes' },
+  //   { value: 900, label: '15 minutes' },
+  //   { value: 1800, label: '30 minutes' }
+  // ]
 
   const searchNation = async (nationId: string, nationNumber: 1 | 2) => {
     if (!nationId.trim()) return

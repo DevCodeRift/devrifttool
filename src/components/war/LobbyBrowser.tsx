@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { BattleSettings } from '@/types/war'
 import { realTimeRoomManager, Room } from '@/lib/realtime-room-manager'
 
 interface LobbyBrowserProps {

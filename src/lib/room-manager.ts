@@ -104,13 +104,16 @@ class RoomManager {
       }]
     }
 
-    this.rooms.set(roomId, room)
+    const rooms = this.getRooms()
+    rooms.set(roomId, room)
+    this.saveRooms(rooms)
     this.notifyListeners()
     return room
   }
 
   joinRoom(roomId: string, playerName: string): RoomData | null {
-    const room = this.rooms.get(roomId)
+    const rooms = this.getRooms()
+    const room = rooms.get(roomId)
     if (!room || room.playerCount >= room.maxPlayers || room.status !== 'waiting') {
       return null
     }
@@ -125,42 +128,51 @@ class RoomManager {
     })
     
     room.playerCount = room.players.length
+    this.saveRooms(rooms)
     this.notifyListeners()
     return room
   }
 
   updateRoom(roomId: string, updates: Partial<RoomData>): RoomData | null {
-    const room = this.rooms.get(roomId)
+    const rooms = this.getRooms()
+    const room = rooms.get(roomId)
     if (!room) return null
 
     Object.assign(room, updates)
+    this.saveRooms(rooms)
     this.notifyListeners()
     return room
   }
 
   getRoom(roomId: string): RoomData | null {
-    return this.rooms.get(roomId) || null
+    const rooms = this.getRooms()
+    return rooms.get(roomId) || null
   }
 
   getPublicRooms(): RoomData[] {
-    return Array.from(this.rooms.values())
+    const rooms = this.getRooms()
+    return Array.from(rooms.values())
       .filter(room => !room.settings.isPrivate)
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
   }
 
   removeRoom(roomId: string): void {
-    this.rooms.delete(roomId)
+    const rooms = this.getRooms()
+    rooms.delete(roomId)
+    this.saveRooms(rooms)
     this.notifyListeners()
   }
 
   // Clean up old rooms (older than 1 hour)
   cleanupOldRooms(): void {
+    const rooms = this.getRooms()
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000)
-    for (const [roomId, room] of this.rooms.entries()) {
+    for (const [roomId, room] of rooms.entries()) {
       if (room.createdAt < oneHourAgo) {
-        this.rooms.delete(roomId)
+        rooms.delete(roomId)
       }
     }
+    this.saveRooms(rooms)
     this.notifyListeners()
   }
 
