@@ -3,7 +3,10 @@ import { supabaseAdmin } from '@/lib/supabase'
 import { CreateWarRequest, JoinWarRequest, War } from '@/types/war-v2'
 
 if (!supabaseAdmin) {
-  throw new Error('Supabase admin client not initialized')
+  console.error('Supabase admin client not initialized - Environment variables:')
+  console.error('SUPABASE_URL:', process.env.NEXT_PUBLIC_SUPABASE_URL ? 'SET' : 'MISSING')
+  console.error('SUPABASE_ANON_KEY:', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'SET' : 'MISSING')
+  console.error('SUPABASE_SERVICE_ROLE_KEY:', process.env.SUPABASE_SERVICE_ROLE_KEY ? 'SET' : 'MISSING')
 }
 
 const supabase = supabaseAdmin
@@ -13,6 +16,10 @@ const supabase = supabaseAdmin
  */
 export async function GET(request: NextRequest) {
   try {
+    if (!supabase) {
+      return NextResponse.json({ error: 'Database connection not available' }, { status: 500 })
+    }
+
     const { searchParams } = new URL(request.url)
     const warId = searchParams.get('warId')
 
@@ -162,6 +169,10 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
+    if (!supabase) {
+      return NextResponse.json({ error: 'Database connection not available' }, { status: 500 })
+    }
+
     const body = await request.json()
     const action = body.action || 'create' // 'create' or 'join'
 
