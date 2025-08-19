@@ -104,20 +104,75 @@ export default function MultiplayerBattleInterface({
     
     if (isUUID) {
       // roomId is already a database UUID, use it directly
-      console.log('RoomId is already a database UUID, subscribing directly:', roomId)
+      console.log('RoomId is already a database UUID, fetching initial data and subscribing:', roomId)
       
+      // First, fetch the initial room and player data using the existing endpoint
+      const fetchInitialData = async () => {
+        try {
+          const response = await fetch(`/api/war/rooms?roomId=${roomId}`)
+          if (response.ok) {
+            const data = await response.json()
+            console.log('Initial data fetched:', data)
+            
+            // Set room data
+            setRoom({
+              id: data.id,
+              room_code: data.room_code || roomId,
+              status: data.status,
+              settings: data.settings,
+              current_turn: 0, // Start at turn 0
+              max_turns: data.settings?.maxTurns || 60,
+              active_player_id: null,
+              created_at: data.created_at,
+              updated_at: data.updated_at || data.created_at,
+              started_at: null,
+              ended_at: null
+            })
+            
+            // Set players data - transform from API format to expected format
+            if (data.players) {
+              const transformedPlayers = data.players.map((p: any) => ({
+                id: p.id,
+                room_id: roomId,
+                player_id: p.id,
+                player_name: p.playerName,
+                side: p.side,
+                nation_data: p.nationData,
+                is_ready: p.isReady,
+                is_host: p.isHost,
+                joined_at: new Date().toISOString()
+              }))
+              console.log('Transformed players:', transformedPlayers)
+              setPlayers(transformedPlayers)
+            }
+            
+            // Initialize empty battle log for new battles
+            setBattleLog([])
+          } else {
+            console.error('Failed to fetch room data:', response.status)
+            setError('Failed to load battle room')
+          }
+        } catch (error) {
+          console.error('Error fetching initial data:', error)
+          setError('Failed to load battle data')
+        }
+      }
+
+      fetchInitialData()
+      
+      // Then set up subscriptions for real-time updates
       const roomSubscription = multiplayerBattleManager.subscribeToRoom(roomId, (updatedRoom) => {
-        console.log('Room updated:', updatedRoom)
+        console.log('Room updated via subscription:', updatedRoom)
         setRoom(updatedRoom)
       })
 
       const playersSubscription = multiplayerBattleManager.subscribeToPlayers(roomId, (updatedPlayers) => {
-        console.log('Players updated:', updatedPlayers)
+        console.log('Players updated via subscription:', updatedPlayers)
         setPlayers(updatedPlayers)
       })
 
       const logsSubscription = multiplayerBattleManager.subscribeToBattleLogs(roomId, (logs) => {
-        console.log('Battle logs updated:', logs)
+        console.log('Battle logs updated via subscription:', logs)
         setBattleLog(logs)
       })
 
