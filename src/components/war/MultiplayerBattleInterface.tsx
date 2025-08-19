@@ -271,7 +271,7 @@ export default function MultiplayerBattleInterface({
         setRoom(roomData)
         if (roomData.players) {
           setPlayers(roomData.players)
-          console.log('📊 Player data refreshed:', roomData.players.map((p: any) => ({
+          console.log('📊 Player data refreshed:', roomData.players.map((p: BattleRoomPlayer) => ({
             name: p.nation_data?.name,
             maps: p.nation_data?.maps,
             resistance: p.nation_data?.resistance

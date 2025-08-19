@@ -299,7 +299,7 @@ class MultiplayerBattleManager {
       console.log('✅ Battle log entry created successfully')
 
       // Check for victory conditions
-      const gameEnded = await this.checkVictoryConditions(roomId, updatedAttacker, updatedDefender, room.current_turn, room.max_turns)
+      await this.checkVictoryConditions(roomId, updatedAttacker, updatedDefender, room.current_turn, room.max_turns)
       
       // In simultaneous gameplay, don't switch turns - both players can act anytime
       
