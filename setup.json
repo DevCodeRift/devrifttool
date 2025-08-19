@@ -1,0 +1,9 @@
+{
+  "scripts": {
+    "setup:env": "echo 'Please copy .env.example to .env.local and fill in your actual values'",
+    "setup:supabase": "echo 'Please run the schema from database/schema.sql in your Supabase SQL editor'",
+    "setup:pusher": "echo 'Please create a Pusher app and add your credentials to .env.local'",
+    "verify:build": "npm run build",
+    "deploy:vercel": "vercel --prod"
+  }
+}
