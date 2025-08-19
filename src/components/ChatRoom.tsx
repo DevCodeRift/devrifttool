@@ -11,12 +11,17 @@ interface Message {
   created_at: string
 }
 
+interface OnlineUser {
+  username: string
+  user_id: string
+}
+
 export default function ChatRoom() {
   const { data: session } = useSession()
   const [messages, setMessages] = useState<Message[]>([])
   const [newMessage, setNewMessage] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const [onlineUsers, setOnlineUsers] = useState<string[]>([])
+  const [onlineUsers, setOnlineUsers] = useState<OnlineUser[]>([])
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const scrollToBottom = () => {
@@ -28,8 +33,12 @@ export default function ChatRoom() {
   }, [messages])
 
   useEffect(() => {
-    // Fetch initial messages
+    // Fetch initial messages and online users
     fetchMessages()
+    fetchOnlineUsers()
+    
+    // Join the chat room
+    joinChatRoom()
 
     // Subscribe to Pusher channel
     const channel = pusherClient.subscribe('chat')
@@ -38,15 +47,28 @@ export default function ChatRoom() {
       setMessages(prev => [...prev, data])
     })
 
-    channel.bind('user-joined', (data: { username: string }) => {
-      setOnlineUsers(prev => [...new Set([...prev, data.username])])
+    channel.bind('user-joined', (data: { username: string; userId: string }) => {
+      setOnlineUsers(prev => {
+        // Check if user is already in the list
+        const exists = prev.some(user => user.user_id === data.userId)
+        if (!exists) {
+          return [...prev, { username: data.username, user_id: data.userId }]
+        }
+        return prev
+      })
     })
 
-    channel.bind('user-left', (data: { username: string }) => {
-      setOnlineUsers(prev => prev.filter(user => user !== data.username))
+    channel.bind('user-left', (data: { username: string; userId: string }) => {
+      setOnlineUsers(prev => prev.filter(user => user.user_id !== data.userId))
     })
 
+    // Set up heartbeat to maintain presence
+    const heartbeat = setInterval(joinChatRoom, 60000) // Every minute
+
+    // Cleanup on unmount
     return () => {
+      clearInterval(heartbeat)
+      leaveChatRoom()
       pusherClient.unsubscribe('chat')
     }
   }, [])
@@ -60,6 +82,46 @@ export default function ChatRoom() {
       }
     } catch (error) {
       console.error('Failed to fetch messages:', error)
+    }
+  }
+
+  const fetchOnlineUsers = async () => {
+    try {
+      const response = await fetch('/api/presence')
+      const data = await response.json()
+      if (data.users) {
+        setOnlineUsers(data.users)
+      }
+    } catch (error) {
+      console.error('Failed to fetch online users:', error)
+    }
+  }
+
+  const joinChatRoom = async () => {
+    try {
+      await fetch('/api/presence', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ action: 'join' }),
+      })
+    } catch (error) {
+      console.error('Failed to join chat room:', error)
+    }
+  }
+
+  const leaveChatRoom = async () => {
+    try {
+      await fetch('/api/presence', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ action: 'leave' }),
+      })
+    } catch (error) {
+      console.error('Failed to leave chat room:', error)
     }
   }
 
@@ -174,13 +236,18 @@ export default function ChatRoom() {
             <span className="text-sm text-gray-700">{session.user?.name} (You)</span>
           </div>
           {onlineUsers
-            .filter(user => user !== session.user?.name)
-            .map((user, index) => (
-              <div key={index} className="flex items-center space-x-2">
+            .filter(user => user.username !== session.user?.name)
+            .map((user) => (
+              <div key={user.user_id} className="flex items-center space-x-2">
                 <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span className="text-sm text-gray-700">{user}</span>
+                <span className="text-sm text-gray-700">{user.username}</span>
               </div>
             ))}
+          {onlineUsers.filter(user => user.username !== session.user?.name).length === 0 && (
+            <div className="text-xs text-gray-500 italic">
+              No other users online
+            </div>
+          )}
         </div>
       </div>
     </div>
