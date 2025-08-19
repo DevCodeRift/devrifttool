@@ -179,9 +179,6 @@ class MultiplayerBattleManager {
             infrastructureDamage: 0,
             loot: {}
           })
-
-          // Switch turns
-          await this.switchTurns(roomId, playerId, opponent.player_id)
           
           return { success: true }
         }
@@ -239,6 +236,7 @@ class MultiplayerBattleManager {
       }
 
       // Update both players' nation data
+      console.log('🔄 Updating player states in database...')
       await Promise.all([
         supabase
           .from('battle_room_players')
@@ -251,6 +249,8 @@ class MultiplayerBattleManager {
           .eq('room_id', roomId)
           .eq('player_id', opponent.player_id)
       ])
+
+      console.log('✅ Player states updated successfully')
 
       // Record the action
       await supabase
@@ -281,11 +281,8 @@ class MultiplayerBattleManager {
       // Check for victory conditions
       const gameEnded = await this.checkVictoryConditions(roomId, updatedAttacker, updatedDefender, room.current_turn, room.max_turns)
       
-      if (!gameEnded) {
-        // Switch turns
-        await this.switchTurns(roomId, playerId, opponent.player_id)
-      }
-
+      // In simultaneous gameplay, don't switch turns - both players can act anytime
+      
       return { success: true, result }
 
     } catch (error) {

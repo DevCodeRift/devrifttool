@@ -6,6 +6,8 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { roomId } = body
 
+    console.log('🚀 Advance-turn API called with roomId:', roomId)
+
     if (!roomId) {
       return NextResponse.json(
         { error: 'Missing roomId' },
@@ -46,6 +48,8 @@ export async function POST(request: NextRequest) {
     // Advance turn and generate MAP for both players
     const newTurn = room.current_turn + 1
 
+    console.log('📈 Advancing turn from', room.current_turn, 'to', newTurn)
+
     // Get both players
     const { data: players, error: playersError } = await supabase
       .from('battle_room_players')
@@ -63,8 +67,10 @@ export async function POST(request: NextRequest) {
     const updatedPlayers = players.map(player => {
       if (player.nation_data && typeof player.nation_data === 'object') {
         const nationData = { ...player.nation_data }
-        // Add 1 MAP to the nation
-        nationData.military_action_points = (nationData.military_action_points || 0) + 1
+        // Add 1 MAP to the nation (ensure it doesn't exceed maxMaps)
+        const currentMaps = nationData.maps || 0
+        const maxMaps = nationData.maxMaps || 12
+        nationData.maps = Math.min(currentMaps + 1, maxMaps)
         return {
           ...player,
           nation_data: nationData
@@ -115,7 +121,7 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Error advancing turn:', error)
+    console.error('❌ Error advancing turn:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
