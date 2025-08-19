@@ -120,13 +120,13 @@ export default class WarCalculations implements IWarCalculations {
     let resistanceDamage = 0
     switch (battleOutcome.victoryType) {
       case 'immense_triumph':
-        resistanceDamage = 19 // 18-20, using middle value
+        resistanceDamage = -10 // Immense victory: -10 resistance damage
         break
       case 'moderate_success':
-        resistanceDamage = 15 // 14-16, using middle value
+        resistanceDamage = -7 // Moderate victory: -7 resistance damage
         break
       case 'pyrrhic_victory':
-        resistanceDamage = 11 // 10-12, using middle value
+        resistanceDamage = -4 // Pyrrhic victory: -4 resistance damage
         break
       case 'utter_failure':
         resistanceDamage = 0
@@ -254,13 +254,13 @@ export default class WarCalculations implements IWarCalculations {
     let resistanceDamage = 0
     switch (battleOutcome.victoryType) {
       case 'immense_triumph':
-        resistanceDamage = 12
+        resistanceDamage = -12 // Immense airstrike: -12 resistance damage
         break
       case 'moderate_success':
-        resistanceDamage = 9
+        resistanceDamage = -9 // Moderate airstrike: -9 resistance damage
         break
       case 'pyrrhic_victory':
-        resistanceDamage = 6
+        resistanceDamage = -6 // Pyrrhic airstrike: -6 resistance damage
         break
       case 'utter_failure':
         resistanceDamage = 0
@@ -482,13 +482,13 @@ export default class WarCalculations implements IWarCalculations {
     let resistanceDamage = 0
     switch (battleOutcome.victoryType) {
       case 'immense_triumph':
-        resistanceDamage = 14
+        resistanceDamage = -14 // Immense naval: -14 resistance damage
         break
       case 'moderate_success':
-        resistanceDamage = 11
+        resistanceDamage = -11 // Moderate naval: -11 resistance damage
         break
       case 'pyrrhic_victory':
-        resistanceDamage = 8
+        resistanceDamage = -8 // Pyrrhic naval: -8 resistance damage
         break
       case 'utter_failure':
         resistanceDamage = 0

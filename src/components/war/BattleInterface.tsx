@@ -251,8 +251,8 @@ export default function BattleInterface({
           updatedDefender.military.ships = Math.max(0, updatedDefender.military.ships - result.defenderCasualties.ships)
         }
 
-        // Apply resistance damage
-        updatedDefender.resistance = Math.max(0, updatedDefender.resistance - result.resistanceDamage)
+        // Apply resistance damage (resistanceDamage is negative, convert to positive damage amount)
+        updatedDefender.resistance = Math.max(0, updatedDefender.resistance - Math.abs(result.resistanceDamage))
 
         // Apply infrastructure damage
         updatedDefender.infrastructure = Math.max(0, updatedDefender.infrastructure - result.infrastructureDamage)
@@ -297,11 +297,11 @@ export default function BattleInterface({
           actionType,
           result: 'success',
           victoryType: result.victoryType,
-          message: `${attacker.name} executed ${actionText} - ${victoryTypeText}! Resistance damage: ${result.resistanceDamage}`,
+          message: `${attacker.name} executed ${actionText} - ${victoryTypeText}! Resistance damage: ${Math.abs(result.resistanceDamage)}`,
           timestamp: new Date(),
           attackerCasualties: result.attackerCasualties,
           defenderCasualties: result.defenderCasualties,
-          resistanceDamage: result.resistanceDamage,
+          resistanceDamage: Math.abs(result.resistanceDamage),
           infrastructureDamage: result.infrastructureDamage,
           loot: result.loot,
           spaceControlChanges: {

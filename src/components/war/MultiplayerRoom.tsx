@@ -57,7 +57,11 @@ export default function MultiplayerRoom({
         const defender = updatedRoom.players.find(p => p.side === 'defender')
         
         if (attacker?.nationData && defender?.nationData) {
-          onStartBattle(attacker.nationData, defender.nationData, updatedRoom.settings)
+          // Ensure nations have correct isDefender status
+          const attackerNation = { ...attacker.nationData, isDefender: false }
+          const defenderNation = { ...defender.nationData, isDefender: true }
+          
+          onStartBattle(attackerNation, defenderNation, updatedRoom.settings)
           return // Don't update room data since we're transitioning away
         }
       }
@@ -242,7 +246,7 @@ export default function MultiplayerRoom({
         cities: data.num_cities,
         score: data.score,
         resistance: 100,
-        maps: 12,
+        maps: 6,
         maxMaps: 12,
         military: {
           soldiers: data.soldiers,
