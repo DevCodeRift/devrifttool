@@ -180,7 +180,7 @@ export default function MultiplayerBattleInterface({
       })
 
       const playersSubscription = multiplayerBattleManager.subscribeToPlayers(roomId, (updatedPlayers) => {
-        console.log('Players updated via subscription:', updatedPlayers)
+        console.log('🔔 Players updated via subscription:', updatedPlayers)
         console.log('📊 Player MAPs after update:', updatedPlayers.map(p => ({
           name: p.nation_data?.name,
           maps: p.nation_data?.maps,
@@ -191,7 +191,7 @@ export default function MultiplayerBattleInterface({
       })
 
       const logsSubscription = multiplayerBattleManager.subscribeToBattleLogs(roomId, (logs) => {
-        console.log('Battle logs updated via subscription:', logs)
+        console.log('🔔 Battle logs updated via subscription:', logs)
         setBattleLog(logs)
       })
 
@@ -258,6 +258,31 @@ export default function MultiplayerBattleInterface({
     }
   }, [roomId])
 
+  // Manual refresh function for debugging
+  const refreshData = async () => {
+    console.log('🔄 Manually refreshing battle data...')
+    try {
+      const response = await fetch(`/api/war/rooms/${roomId}`)
+      if (response.ok) {
+        const roomData = await response.json()
+        console.log('📊 Latest room data from server:', roomData)
+        
+        // Update the UI with fresh data
+        setRoom(roomData)
+        if (roomData.players) {
+          setPlayers(roomData.players)
+          console.log('📊 Player data refreshed:', roomData.players.map((p: any) => ({
+            name: p.nation_data?.name,
+            maps: p.nation_data?.maps,
+            resistance: p.nation_data?.resistance
+          })))
+        }
+      }
+    } catch (error) {
+      console.error('Error refreshing data:', error)
+    }
+  }
+
   const executeAction = async (
     actionType: ActionType,
     target?: string,
@@ -272,6 +297,13 @@ export default function MultiplayerBattleInterface({
     setError('')
 
     try {
+      console.log('🚀 Executing battle action from UI:', {
+        roomId,
+        playerId,
+        actionType,
+        actionData: { target, units, options }
+      })
+      
       const response = await fetch('/api/battle/action', {
         method: 'POST',
         headers: {
@@ -339,9 +371,15 @@ export default function MultiplayerBattleInterface({
             </h1>
             <button
               onClick={onBackToRoom}
-              className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
+              className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 mr-2"
             >
               Back to Room
+            </button>
+            <button
+              onClick={refreshData}
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            >
+              🔄 Refresh Data
             </button>
           </div>
           
@@ -389,7 +427,21 @@ export default function MultiplayerBattleInterface({
           </div>
         )}
 
-        {/* War Status */}
+                  {/* Debug Panel */}
+          <div className="bg-gray-800 p-4 rounded-lg mb-4">
+            <h3 className="text-lg font-semibold mb-2">🐛 Debug Info</h3>
+            <div className="text-sm space-y-1">
+              <p><strong>Room ID:</strong> {room?.id}</p>
+              <p><strong>Current Turn:</strong> {room?.current_turn}</p>
+              <p><strong>Your Player ID:</strong> {playerId}</p>
+              <p><strong>Your Nation:</strong> {currentPlayer?.nation_data?.name}</p>
+              <p><strong>Your MAPs:</strong> {currentPlayer?.nation_data?.maps}/{currentPlayer?.nation_data?.maxMaps}</p>
+              <p><strong>Enemy Resistance:</strong> {opponent?.nation_data?.resistance}</p>
+              <p><strong>Server URL:</strong> {window.location.origin}</p>
+            </div>
+          </div>
+
+          {/* War Status */}
         {warOver && (
           <div className="mb-6 p-6 bg-red-800 border-2 border-red-600 rounded-lg text-center">
             <h3 className="text-2xl font-bold mb-2">
