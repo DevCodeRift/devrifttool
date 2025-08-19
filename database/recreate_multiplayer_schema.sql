@@ -22,7 +22,7 @@ DROP FUNCTION IF EXISTS update_battle_room_timestamp();
 -- Battle rooms for multiplayer war simulation
 CREATE TABLE battle_rooms (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    room_code VARCHAR(10) UNIQUE NOT NULL,
+    room_code VARCHAR(50) UNIQUE NOT NULL, -- Increased from 10 to 50 to accommodate generated room IDs
     status VARCHAR(20) DEFAULT 'waiting' CHECK (status IN ('waiting', 'in_progress', 'completed', 'abandoned')),
     settings JSONB NOT NULL,
     current_turn INTEGER DEFAULT 1,
