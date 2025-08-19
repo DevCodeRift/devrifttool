@@ -38,6 +38,7 @@ export default function MultiplayerRoom({
     const unsubscribe = realTimeRoomManager.subscribeToRoom(roomData.id, (updatedRoom) => {
       console.log('Room update received:', {
         roomId: updatedRoom.id,
+        status: updatedRoom.status,
         playerCount: updatedRoom.players.length,
         players: updatedRoom.players.map(p => ({
           id: p.id,
@@ -47,6 +48,19 @@ export default function MultiplayerRoom({
           isReady: p.isReady
         }))
       })
+      
+      // Check if battle should start automatically
+      if (updatedRoom.status === 'in_progress' && roomData.status === 'waiting') {
+        console.log('Room status changed to in_progress, starting battle for all players')
+        
+        const attacker = updatedRoom.players.find(p => p.side === 'attacker')
+        const defender = updatedRoom.players.find(p => p.side === 'defender')
+        
+        if (attacker?.nationData && defender?.nationData) {
+          onStartBattle(attacker.nationData, defender.nationData, updatedRoom.settings)
+          return // Don't update room data since we're transitioning away
+        }
+      }
       
       setRoomData(updatedRoom)
       
@@ -356,11 +370,11 @@ export default function MultiplayerRoom({
     }
 
     const success = await realTimeRoomManager.startBattle(roomData.id, playerId)
-    if (success) {
-      onStartBattle(attacker.nationData, defender.nationData, roomData.settings)
-    } else {
+    if (!success) {
       setError('Failed to start battle')
     }
+    // Note: The actual battle transition is now handled by the room subscription
+    // when the room status changes to 'in_progress'
   }
 
   const canStartBattle = () => {

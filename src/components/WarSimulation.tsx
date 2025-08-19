@@ -86,7 +86,7 @@ export default function WarSimulation() {
   return (
     <div className="space-y-6">
       {warState === 'setup' && (
-        <NationSetup onWarStart={startWar} onMultiplayerRoom={goToMultiplayerRoom} />
+        <NationSetup onWarStart={goToMultiplayerRoom} onMultiplayerRoom={goToMultiplayerRoom} />
       )}
       
       {warState === 'lobby_browser' && (
