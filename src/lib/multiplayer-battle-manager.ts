@@ -408,7 +408,16 @@ class MultiplayerBattleManager {
         turn_number: turnNumber,
         attacker_name: attackerName,
         defender_name: defenderName,
-        ...logData
+        action: logData.action,
+        action_type: logData.actionType,
+        result: logData.result,
+        victory_type: logData.victoryType,
+        message: logData.message,
+        attacker_casualties: logData.attackerCasualties,
+        defender_casualties: logData.defenderCasualties,
+        resistance_damage: logData.resistanceDamage,
+        infrastructure_damage: Math.round(logData.infrastructureDamage),
+        loot: logData.loot
       })
     
     if (insertResult.error) {

@@ -7,8 +7,16 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { roomId, playerId, actionType, actionData } = body
 
+    console.log(`🎯 Battle action API called:`, {
+      roomId,
+      playerId,
+      actionType,
+      actionData
+    })
+
     // Validate required fields
     if (!roomId || !playerId || !actionType) {
+      console.log(`❌ Missing required fields`)
       return NextResponse.json(
         { error: 'Missing required fields: roomId, playerId, actionType' },
         { status: 400 }
@@ -34,6 +42,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Execute the battle action
+    console.log(`🚀 Executing battle action...`)
     const result = await multiplayerBattleManager.executeBattleAction(
       roomId,
       playerId,
@@ -41,13 +50,17 @@ export async function POST(request: NextRequest) {
       actionData || {}
     )
 
+    console.log(`📋 Battle action result:`, result)
+
     if (!result.success) {
+      console.log(`❌ Battle action failed:`, result.error)
       return NextResponse.json(
         { error: result.error },
         { status: 400 }
       )
     }
 
+    console.log(`✅ Battle action successful, returning result`)
     return NextResponse.json({
       success: true,
       result: result.result
