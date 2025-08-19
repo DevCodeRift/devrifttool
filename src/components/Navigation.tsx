@@ -37,6 +37,12 @@ export default function Navigation() {
           <div className="flex items-center space-x-4">
             {session ? (
               <>
+                <Link
+                  href="/chat"
+                  className="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  🚀 Chat Room
+                </Link>
                 <span className="text-gray-700">Welcome, {session.user?.name}</span>
                 <button
                   onClick={() => signOut()}

@@ -2,6 +2,7 @@
 
 import { useSession } from 'next-auth/react'
 import Navigation from '@/components/Navigation'
+import VersionBadge from '@/components/VersionBadge'
 import Link from 'next/link'
 
 export default function Home() {
@@ -29,14 +30,20 @@ export default function Home() {
                       Welcome back, {session.user?.name}!
                     </h3>
                     <div className="mt-2 max-w-xl text-sm text-gray-500">
-                      <p>You are successfully signed in. This is where your multiplayer features will go.</p>
+                      <p>You are successfully signed in. Test the multiplayer features!</p>
                     </div>
-                    <div className="mt-5">
-                      <button
-                        type="button"
+                    <div className="mt-5 space-x-3">
+                      <Link
+                        href="/chat"
                         className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                       >
-                        Start Playing
+                        🚀 Test Chat Room
+                      </Link>
+                      <button
+                        type="button"
+                        className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                      >
+                        More Features Soon...
                       </button>
                     </div>
                   </div>
@@ -65,6 +72,8 @@ export default function Home() {
           </div>
         </div>
       </main>
+      
+      <VersionBadge />
     </div>
   )
 }

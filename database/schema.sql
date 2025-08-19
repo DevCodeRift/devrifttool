@@ -41,3 +41,45 @@ ALTER TABLE user_sessions ENABLE ROW LEVEL SECURITY;
 -- Create a policy for user sessions
 CREATE POLICY "Users can manage own sessions" ON user_sessions
     FOR ALL USING (user_id = auth.uid());
+
+-- Create chat messages table for multiplayer testing
+CREATE TABLE IF NOT EXISTS chat_messages (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    username VARCHAR(50) NOT NULL,
+    message TEXT NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Create an index on created_at for faster lookups
+CREATE INDEX IF NOT EXISTS idx_chat_messages_created_at ON chat_messages(created_at DESC);
+
+-- Enable Row Level Security for chat messages
+ALTER TABLE chat_messages ENABLE ROW LEVEL SECURITY;
+
+-- Create a policy that allows all authenticated users to read chat messages
+CREATE POLICY "Authenticated users can view chat messages" ON chat_messages
+    FOR SELECT USING (auth.role() = 'authenticated');
+
+-- Create a policy that allows users to insert their own messages
+CREATE POLICY "Users can send chat messages" ON chat_messages
+    FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+-- Create online users table for presence tracking
+CREATE TABLE IF NOT EXISTS online_users (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    username VARCHAR(50) NOT NULL,
+    last_seen TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(user_id)
+);
+
+-- Enable Row Level Security for online users
+ALTER TABLE online_users ENABLE ROW LEVEL SECURITY;
+
+-- Create a policy for online users
+CREATE POLICY "Authenticated users can view online users" ON online_users
+    FOR SELECT USING (auth.role() = 'authenticated');
+
+CREATE POLICY "Users can update their own presence" ON online_users
+    FOR ALL USING (auth.uid() = user_id);
