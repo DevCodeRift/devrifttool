@@ -42,6 +42,14 @@ export default function MultiplayerBattleInterface({
   const opponent = players.find(p => p.player_id !== playerId)
   const isAttacker = currentPlayer?.side === 'attacker'
 
+  // Debug logging
+  console.log('🔍 Player lookup debug:', {
+    playerId,
+    players: players.map(p => ({ player_id: p.player_id, name: p.player_name, nation: !!p.nation_data })),
+    currentPlayer: currentPlayer ? { player_id: currentPlayer.player_id, name: currentPlayer.player_name, nation: !!currentPlayer.nation_data } : 'NOT FOUND',
+    opponent: opponent ? { player_id: opponent.player_id, name: opponent.player_name, nation: !!opponent.nation_data } : 'NOT FOUND'
+  })
+
   // Auto-scroll battle log to bottom when new entries are added
   useEffect(() => {
     if (battleLogRef.current) {
@@ -145,9 +153,9 @@ export default function MultiplayerBattleInterface({
             // Set players data - transform from API format to expected format
             if (data.players) {
               const transformedPlayers = data.players.map((p: ApiPlayer) => ({
-                id: p.id,
+                id: `player_${p.id}`, // Generate a unique ID for the database record
                 room_id: roomId,
-                player_id: p.id,
+                player_id: p.id, // This should match the playerId parameter
                 player_name: p.playerName,
                 side: p.side,
                 nation_data: p.nationData,
@@ -350,15 +358,33 @@ export default function MultiplayerBattleInterface({
     )
   }
 
-  const nation1 = isAttacker ? currentPlayer.nation_data! : opponent.nation_data!
-  const nation2 = isAttacker ? opponent.nation_data! : currentPlayer.nation_data!
   const activeNation = isAttacker ? 1 : 2 // Both players can act simultaneously now
-  const warOver = room.status === 'completed'
+  const warOver = room?.status === 'completed'
+  
+  // Debug logging for battle actions display
+  console.log('🎮 Battle Actions display conditions:', {
+    warOver,
+    roomStatus: room?.status,
+    hasCurrentPlayer: !!currentPlayer,
+    hasCurrentPlayerNation: !!currentPlayer?.nation_data,
+    shouldShowActions: !warOver && !!currentPlayer?.nation_data
+  })
+
+  // Set up nations for display (ensure we have both nations and their data)
+  if (!currentPlayer?.nation_data || !opponent?.nation_data) {
+    console.log('⚠️ Missing nation data:', {
+      currentPlayerNation: !!currentPlayer?.nation_data,
+      opponentNation: !!opponent?.nation_data
+    })
+  }
+
+  const nation1 = isAttacker ? currentPlayer?.nation_data : opponent?.nation_data
+  const nation2 = isAttacker ? opponent?.nation_data : currentPlayer?.nation_data
 
   // Determine winner from battle log - check if game ended
-  const winner = warOver && room.status === 'completed' ?
-    (nation1.resistance <= 0 ? nation2.name : 
-     nation2.resistance <= 0 ? nation1.name : null) : null
+  const winner = warOver && room?.status === 'completed' ?
+    (nation1?.resistance === 0 ? nation2?.name : 
+     nation2?.resistance === 0 ? nation1?.name : null) : null
 
   return (
     <div className="min-h-screen bg-gray-900 text-white p-8">
@@ -367,7 +393,7 @@ export default function MultiplayerBattleInterface({
         <div className="mb-8">
           <div className="flex justify-between items-center mb-4">
             <h1 className="text-3xl font-bold">
-              Multiplayer War: {nation1.name} vs {nation2.name}
+              Multiplayer War: {nation1?.name || 'Unknown'} vs {nation2?.name || 'Unknown'}
             </h1>
             <button
               onClick={onBackToRoom}
@@ -457,15 +483,15 @@ export default function MultiplayerBattleInterface({
           {/* Nation Status */}
           <div className="xl:col-span-2 space-y-6">
             <NationStatus 
-              nation1={nation1} 
-              nation2={nation2} 
+              nation1={nation1!} 
+              nation2={nation2!} 
               activeNation={activeNation}
             />
             
-            {!warOver && currentPlayer.nation_data && (
+            {!warOver && currentPlayer?.nation_data && opponent?.nation_data && (
               <BattleActions
                 attacker={currentPlayer.nation_data}
-                defender={opponent.nation_data!}
+                defender={opponent.nation_data}
                 onExecuteAction={executeAction}
               />
             )}
