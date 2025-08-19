@@ -95,27 +95,62 @@ export default function MultiplayerBattleInterface({
   useEffect(() => {
     if (!roomId) return
 
-    console.log('Subscribing to room updates for roomId:', roomId)
+    console.log('Looking up database room for roomId:', roomId)
 
-    const roomSubscription = multiplayerBattleManager.subscribeToRoom(roomId, (updatedRoom) => {
-      console.log('Room updated:', updatedRoom)
-      setRoom(updatedRoom)
-    })
+    let cleanup: (() => void) | undefined
 
-    const playersSubscription = multiplayerBattleManager.subscribeToPlayers(roomId, (updatedPlayers) => {
-      console.log('Players updated:', updatedPlayers)
-      setPlayers(updatedPlayers)
-    })
+    // First, look up the actual database room using the room code
+    const lookupDatabaseRoom = async () => {
+      try {
+        const response = await fetch(`/api/war/rooms?roomId=${roomId}`)
+        if (response.ok) {
+          const data = await response.json()
+          if (data && data.id) {
+            const databaseRoomId = data.id
+            console.log('Found database room ID:', databaseRoomId, 'for room code:', roomId)
+            
+            // Now subscribe to the actual database room
+            const roomSubscription = multiplayerBattleManager.subscribeToRoom(databaseRoomId, (updatedRoom) => {
+              console.log('Room updated:', updatedRoom)
+              setRoom(updatedRoom)
+            })
 
-    const logsSubscription = multiplayerBattleManager.subscribeToBattleLogs(roomId, (logs) => {
-      console.log('Battle logs updated:', logs)
-      setBattleLog(logs)
-    })
+            const playersSubscription = multiplayerBattleManager.subscribeToPlayers(databaseRoomId, (updatedPlayers) => {
+              console.log('Players updated:', updatedPlayers)
+              setPlayers(updatedPlayers)
+            })
 
+            const logsSubscription = multiplayerBattleManager.subscribeToBattleLogs(databaseRoomId, (logs) => {
+              console.log('Battle logs updated:', logs)
+              setBattleLog(logs)
+            })
+
+            // Store cleanup function
+            cleanup = () => {
+              roomSubscription.unsubscribe()
+              playersSubscription.unsubscribe()
+              logsSubscription.unsubscribe()
+            }
+          } else {
+            console.error('Room not found in database for roomId:', roomId)
+            setError('Battle room not found')
+          }
+        } else {
+          console.error('Failed to lookup room:', response.status)
+          setError('Failed to load battle room')
+        }
+      } catch (error) {
+        console.error('Error looking up database room:', error)
+        setError('Failed to connect to battle room')
+      }
+    }
+
+    lookupDatabaseRoom()
+    
     return () => {
-      roomSubscription.unsubscribe()
-      playersSubscription.unsubscribe()
-      logsSubscription.unsubscribe()
+      if (cleanup) {
+        cleanup()
+      }
     }
   }, [roomId])
 
