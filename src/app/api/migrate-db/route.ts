@@ -175,12 +175,13 @@ export async function POST() {
       message: 'Database migration completed successfully'
     })
     
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('❌ Migration failed:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
     return NextResponse.json(
       { 
         success: false, 
-        error: error.message 
+        error: errorMessage 
       },
       { status: 500 }
     )

@@ -10,20 +10,17 @@ import BattleLogDisplay from './BattleLogDisplay'
 interface MultiplayerBattleInterfaceProps {
   roomId: string
   playerId: string
-  playerName: string
   onBackToRoom: () => void
 }
 
 export default function MultiplayerBattleInterface({
   roomId,
   playerId,
-  playerName,
   onBackToRoom
 }: MultiplayerBattleInterfaceProps) {
   const [room, setRoom] = useState<MultiplayerBattleRoom | null>(null)
   const [players, setPlayers] = useState<BattleRoomPlayer[]>([])
   const [battleLog, setBattleLog] = useState<BattleLog[]>([])
-  const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const battleLogRef = useRef<HTMLDivElement>(null)
 
@@ -79,7 +76,6 @@ export default function MultiplayerBattleInterface({
       return
     }
 
-    setLoading(true)
     setError('')
 
     try {
@@ -113,8 +109,6 @@ export default function MultiplayerBattleInterface({
     } catch (error) {
       console.error('Error executing action:', error)
       setError('Failed to execute action')
-    } finally {
-      setLoading(false)
     }
   }
 

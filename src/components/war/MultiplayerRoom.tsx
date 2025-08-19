@@ -26,9 +26,34 @@ export default function MultiplayerRoom({
   const [initializing, setInitializing] = useState(false)
   const [selectingSide, setSelectingSide] = useState(false)
 
+  const initializeRoom = async () => {
+    // Prevent multiple simultaneous initialization attempts
+    if (initializing) {
+      console.log('Room initialization already in progress, skipping...')
+      return
+    }
+
+    setInitializing(true)
+    
+    try {
+      if (battleSettings.roomCode && battleSettings.roomCode !== 'BROWSE_LOBBIES') {
+        // Try to join existing room
+        await joinRoom(battleSettings.roomCode)
+      } else {
+        // Create new room
+        await createRoom()
+      }
+    } catch {
+      setError('Failed to initialize room')
+    } finally {
+      setInitializing(false)
+    }
+  }
+
   // Initialize room or join existing room
   useEffect(() => {
     initializeRoom()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // Subscribe to room updates
@@ -83,31 +108,8 @@ export default function MultiplayerRoom({
     })
 
     return unsubscribe
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roomData?.id, playerId])
-
-  const initializeRoom = async () => {
-    // Prevent multiple simultaneous initialization attempts
-    if (initializing) {
-      console.log('Room initialization already in progress, skipping...')
-      return
-    }
-
-    setInitializing(true)
-    
-    try {
-      if (battleSettings.roomCode && battleSettings.roomCode !== 'BROWSE_LOBBIES') {
-        // Try to join existing room
-        await joinRoom(battleSettings.roomCode)
-      } else {
-        // Create new room
-        await createRoom()
-      }
-    } catch {
-      setError('Failed to initialize room')
-    } finally {
-      setInitializing(false)
-    }
-  }
 
   const createRoom = async () => {
     const roomId = realTimeRoomManager.generateRoomId()
