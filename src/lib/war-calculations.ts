@@ -3,6 +3,13 @@ import { Nation, BattleResult, VictoryType, WarCalculations as IWarCalculations 
 export default class WarCalculations implements IWarCalculations {
   
   /**
+   * Generate random factor between 0.85 and 1.05 (P&W RAND function)
+   */
+  private generateRandFactor(): number {
+    return Math.random() * (1.05 - 0.85) + 0.85
+  }
+  
+  /**
    * Calculate army value for ground battles
    * Formula: Unarmed Soldiers * 1 + Armed Soldiers * 1.75 + Tanks * 40
    */
@@ -266,21 +273,41 @@ export default class WarCalculations implements IWarCalculations {
     const roll = battleOutcome.rollsWon
     
     if (target === 'aircraft') {
-      // Air vs Air combat using CORRECT P&W formulas
-      const defAirLoss = Math.floor(
-        Math.min(
-          defender.military.aircraft,
-          0.63855421686746987951807228915663 * 9 * (aircraft * 0.7) / 38
-        )
-      )
-      const attAirLoss = Math.floor(
-        Math.min(
-          aircraft,
-          0.63855421686746987951807228915663 * fortifyFactor * 9 * (defenderStrength * 0.7) / 54
-        )
-      )
+      // Dogfight (Air vs Air combat) using EXACT P&W formulas
+      console.log('=== DOGFIGHT (Air vs Air) DEBUG ===')
+      console.log('Attacker aircraft:', aircraft)
+      console.log('Defender aircraft:', defenderStrength)
+      console.log('Battle rolls:', battleOutcome.attackerRolls, 'vs', battleOutcome.defenderRolls)
+      
+      // Calculate casualties per roll using exact P&W formulas
+      let attAirLoss = 0
+      let defAirLoss = 0
+      
+      for (let i = 0; i < 3; i++) {
+        const attackerRoll = battleOutcome.attackerRolls[i]
+        const defenderRoll = battleOutcome.defenderRolls[i]
+        
+        // Dogfight casualties per roll
+        const attCasualtyThisRoll = Math.floor(defenderRoll * 0.01)
+        const defCasualtyThisRoll = Math.floor(attackerRoll * 0.018337)
+        
+        attAirLoss += attCasualtyThisRoll
+        defAirLoss += defCasualtyThisRoll
+        
+        console.log(`Roll ${i + 1}: Att=${attackerRoll}, Def=${defenderRoll} -> AttLoss=${attCasualtyThisRoll}, DefLoss=${defCasualtyThisRoll}`)
+      }
+      
+      // Apply fortify factor to attacker losses
+      attAirLoss = Math.floor(attAirLoss * fortifyFactor)
+      
+      // Ensure we don't exceed available aircraft
+      attAirLoss = Math.min(aircraft, attAirLoss)
+      defAirLoss = Math.min(defender.military.aircraft, defAirLoss)
       
       targetCasualties = { aircraft: defAirLoss }
+      
+      console.log('Final air casualties:', { attAirLoss, defAirLoss })
+      console.log('=== DOGFIGHT DEBUG END ===')
       
       // Space control for immense triumph
       let spaceControlGained: keyof Nation['spaceControl'] | undefined
@@ -294,56 +321,134 @@ export default class WarCalculations implements IWarCalculations {
         attackerRolls: battleOutcome.attackerRolls,
         defenderRolls: battleOutcome.defenderRolls,
         resistanceDamage,
-        infrastructureDamage: Math.max(0, Math.min((aircraft - (defenderStrength * 0.5)) * 0.35353535 * 0.95 * (roll / 3), defender.infrastructure * 0.5 + 100)),
+        infrastructureDamage: Math.max(0, Math.min((aircraft - (defenderStrength * 0.5)) * 0.35353535 * this.generateRandFactor() * (roll / 3), defender.infrastructure * 0.5 + 100)),
         loot: {},
         attackerCasualties: { aircraft: attAirLoss },
         defenderCasualties: targetCasualties,
         spaceControlGained
       }
     } else {
-      // Air vs Ground targets using CORRECT P&W formulas
-      if (defender.military.aircraft === 0 && battleOutcome.victoryType === 'immense_triumph') {
-        // Non-dogfight airstrike with no enemy aircraft (IT only)
-        switch (target) {
-          case 'soldiers':
-            targetCasualties = { 
-              soldiers: Math.floor(
+      // Air vs Ground targets using EXACT P&W formulas with correct multipliers
+      console.log(`=== AIRSTRIKE vs ${target.toUpperCase()} DEBUG ===`)
+      console.log('Aircraft attacking:', aircraft)
+      console.log('Enemy aircraft defending:', defenderStrength)
+      console.log('Battle outcome:', battleOutcome.victoryType)
+      console.log('Rolls won:', roll)
+      
+      // Generate RAND factor for this attack
+      const randFactor = this.generateRandFactor()
+      console.log('Random factor (0.85-1.05):', randFactor)
+      
+      // Apply damage to selected ground target using EXACT P&W formulas
+      switch (target) {
+        case 'soldiers':
+          // Soldiers Killed = ROUND(MAX(MIN(Enemy Soldiers, Enemy Soldiers * 0.75 + 1000, (Attacking Aircraft - Defending Aircraft * 0.5) * 35 * RAND(0.85, 1.05)), 0))
+          const soldiersKilled = Math.round(
+            Math.max(
+              Math.min(
+                defender.military.soldiers,
                 Math.min(
-                  defender.military.soldiers,
-                  0.58139534883720930232558139534884 * (roll * Math.max(Math.min(defender.military.soldiers, Math.min(defender.military.soldiers * 0.75 + 1000, (aircraft - defenderStrength * 0.5) * 50 * 0.95)), 0)) / 3
+                  defender.military.soldiers * 0.75 + 1000,
+                  (aircraft - defenderStrength * 0.5) * 35 * randFactor
                 )
-              )
-            }
-            break
-          case 'tanks':
-            targetCasualties = { 
-              tanks: Math.floor(
+              ),
+              0
+            )
+          )
+          targetCasualties = { soldiers: Math.min(defender.military.soldiers, soldiersKilled) }
+          console.log('Soldiers killed calculation:', { 
+            formula: `ROUND(MAX(MIN(${defender.military.soldiers}, MIN(${defender.military.soldiers * 0.75 + 1000}, (${aircraft} - ${defenderStrength} * 0.5) * 35 * ${randFactor})), 0))`,
+            result: soldiersKilled, 
+            actualKilled: targetCasualties.soldiers 
+          })
+          break
+          
+        case 'tanks':
+          // Tanks Killed = ROUND(MAX(MIN(Enemy Tanks, Enemy Tanks * 0.75 + 10, (Attacking Aircraft - Defending Aircraft * 0.5) * 1.25 * RAND(0.85, 1.05)), 0))
+          const tanksKilled = Math.round(
+            Math.max(
+              Math.min(
+                defender.military.tanks,
                 Math.min(
-                  defender.military.tanks,
-                  0.32558139534883720930232558139535 * (roll * Math.max(Math.min(defender.military.tanks, Math.min(defender.military.tanks * 0.75 + 10, (aircraft - defenderStrength * 0.5) * 2.5 * 0.95)), 0)) / 3
+                  defender.military.tanks * 0.75 + 10,
+                  (aircraft - defenderStrength * 0.5) * 1.25 * randFactor
                 )
-              )
-            }
-            break
-          case 'ships':
-            targetCasualties = { 
-              ships: Math.floor(
+              ),
+              0
+            )
+          )
+          targetCasualties = { tanks: Math.min(defender.military.tanks, tanksKilled) }
+          console.log('Tanks killed calculation:', { 
+            formula: `ROUND(MAX(MIN(${defender.military.tanks}, MIN(${defender.military.tanks * 0.75 + 10}, (${aircraft} - ${defenderStrength} * 0.5) * 1.25 * ${randFactor})), 0))`,
+            result: tanksKilled, 
+            actualKilled: targetCasualties.tanks 
+          })
+          break
+          
+        case 'ships':
+          // Ships Killed = ROUND(MAX(MIN(Enemy Ships, Enemy Ships * 0.5 + 4, (Attacking Aircraft - Defending Aircraft * 0.5) * 0.0285 * RAND(0.85, 1.05)), 0))
+          const shipsKilled = Math.round(
+            Math.max(
+              Math.min(
+                defender.military.ships,
                 Math.min(
-                  defender.military.ships,
-                  0.82926829268292682926829268292683 * (roll * Math.max(Math.min(defender.military.ships, Math.min(defender.military.ships * 0.5 + 4, (aircraft - defenderStrength * 0.5) * 0.0285 * 0.95)), 0)) / 3
+                  defender.military.ships * 0.5 + 4,
+                  (aircraft - defenderStrength * 0.5) * 0.0285 * randFactor
                 )
-              )
-            }
-            break
-        }
+              ),
+              0
+            )
+          )
+          targetCasualties = { ships: Math.min(defender.military.ships, shipsKilled) }
+          console.log('Ships killed calculation:', { 
+            formula: `ROUND(MAX(MIN(${defender.military.ships}, MIN(${defender.military.ships * 0.5 + 4}, (${aircraft} - ${defenderStrength} * 0.5) * 0.0285 * ${randFactor})), 0))`,
+            result: shipsKilled, 
+            actualKilled: targetCasualties.ships 
+          })
+          break
       }
-
-      const attAirLoss = Math.floor(
-        Math.min(
-          aircraft,
-          0.5 * fortifyFactor * 9 * (defenderStrength * 0.7) / 54
-        )
-      )
+      
+      // Calculate aircraft casualties for non-dogfight scenarios
+      let attAirLoss = 0
+      let defAirLoss = 0
+      
+      // Only calculate aircraft losses if there are defending aircraft
+      if (defender.military.aircraft > 0) {
+        console.log('=== NON-DOGFIGHT AIRCRAFT CASUALTIES ===')
+        console.log('Battle rolls:', battleOutcome.attackerRolls, 'vs', battleOutcome.defenderRolls)
+        
+        for (let i = 0; i < 3; i++) {
+          const attackerRoll = battleOutcome.attackerRolls[i]
+          const defenderRoll = battleOutcome.defenderRolls[i]
+          
+          // Non-dogfight casualties per roll
+          const attCasualtyThisRoll = Math.floor(defenderRoll * 0.015385)
+          const defCasualtyThisRoll = Math.floor(attackerRoll * 0.009091)
+          
+          attAirLoss += attCasualtyThisRoll
+          defAirLoss += defCasualtyThisRoll
+          
+          console.log(`Roll ${i + 1}: Att=${attackerRoll}, Def=${defenderRoll} -> AttLoss=${attCasualtyThisRoll}, DefLoss=${defCasualtyThisRoll}`)
+        }
+        
+        // Apply fortify factor to attacker losses
+        attAirLoss = Math.floor(attAirLoss * fortifyFactor)
+        
+        // Ensure we don't exceed available aircraft
+        attAirLoss = Math.min(aircraft, attAirLoss)
+        defAirLoss = Math.min(defender.military.aircraft, defAirLoss)
+        
+        // Add defender aircraft losses to casualties
+        targetCasualties.aircraft = defAirLoss
+        
+        console.log('Non-dogfight air casualties:', { attAirLoss, defAirLoss })
+        console.log('=== NON-DOGFIGHT AIRCRAFT CASUALTIES END ===')
+      } else {
+        console.log('No defending aircraft - no air-to-air casualties')
+      }
+      
+      console.log('Final target casualties:', targetCasualties)
+      console.log('=== AIRSTRIKE DEBUG END ===')
 
       return {
         victoryType: battleOutcome.victoryType,
@@ -351,7 +456,7 @@ export default class WarCalculations implements IWarCalculations {
         attackerRolls: battleOutcome.attackerRolls,
         defenderRolls: battleOutcome.defenderRolls,
         resistanceDamage,
-        infrastructureDamage: Math.max(0, Math.min((aircraft - (defenderStrength * 0.5)) * 0.35353535 * 0.95 * (roll / 3), defender.infrastructure * 0.5 + 100)),
+        infrastructureDamage: Math.max(0, Math.min((aircraft - (defenderStrength * 0.5)) * 0.35353535 * randFactor * (roll / 3), defender.infrastructure * 0.5 + 100)),
         loot: {},
         attackerCasualties: { aircraft: attAirLoss },
         defenderCasualties: targetCasualties

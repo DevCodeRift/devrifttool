@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "DevCodeRift - Multiplayer Web App",
-  description: "A simple multiplayer web application",
+  title: "DevRift Tools - Politics & War Development Platform",
+  description: "Advanced development tools and simulation platform for Politics & War",
 };
 
 export default function RootLayout({
@@ -26,7 +26,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-950 text-gray-200`}
       >
         <AuthProvider>
           {children}

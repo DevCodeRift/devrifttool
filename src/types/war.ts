@@ -9,6 +9,14 @@ export type BattleType = 'ground' | 'air' | 'naval' | 'missile' | 'nuclear' | 's
 export type ActionType = 'ground_battle' | 'airstrike' | 'naval_battle' | 'missile_launch' | 
                         'nuclear_attack' | 'spy_operation' | 'fortify' | 'war_declaration' | 'system'
 
+export interface BattleSettings {
+  gameMode: 'singleplayer' | 'multiplayer'
+  turnDuration: number // in seconds
+  maxTurns: number
+  isPrivate: boolean
+  roomCode?: string
+}
+
 export type SpaceControl = {
   groundControl: boolean
   airSuperiority: boolean

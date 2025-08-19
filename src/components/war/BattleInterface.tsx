@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { Nation, BattleLog, BattleResult, ActionType } from '@/types/war'
+import { Nation, BattleLog, BattleResult, ActionType, BattleSettings } from '@/types/war'
 import WarCalculations from '@/lib/war-calculations'
 import NationStatus from './NationStatus'
 import BattleActions from './BattleActions'
@@ -18,6 +18,7 @@ interface BattleInterfaceProps {
   onReset: () => void
   setNation1: (nation: Nation) => void
   setNation2: (nation: Nation) => void
+  battleSettings: BattleSettings
 }
 
 export default function BattleInterface({
@@ -30,7 +31,8 @@ export default function BattleInterface({
   maxTurns,
   onReset,
   setNation1,
-  setNation2
+  setNation2,
+  battleSettings
 }: BattleInterfaceProps) {
   const [activeNation, setActiveNation] = useState<1 | 2>(1)
   const [warOver, setWarOver] = useState(false)
@@ -62,7 +64,8 @@ export default function BattleInterface({
   const executeAction = async (
     actionType: ActionType,
     target?: string,
-    units?: number
+    units?: number,
+    options?: { soldiers?: number; tanks?: number; [key: string]: unknown }
   ) => {
     if (warOver) return
 
@@ -125,21 +128,54 @@ export default function BattleInterface({
       // Execute the action based on type
       switch (actionType) {
         case 'ground_battle':
+          console.log('=== BATTLE INTERFACE DEBUG ===')
+          console.log('Action Type:', actionType)
+          console.log('Units parameter (legacy):', units)
+          console.log('Options:', options)
+          
+          // For ground battles, use options.soldiers and options.tanks
+          const soldiers = options?.soldiers ?? 0;
+          const tanks = options?.tanks ?? 0;
+          
+          console.log('Ground battle units to use:', { soldiers, tanks });
+          console.log('Attacker full military:', attacker.military)
+          console.log('Defender full military:', defender.military)
+          
+          if (soldiers <= 0 && tanks <= 0) {
+            console.log('Invalid ground battle: no soldiers or tanks specified');
+            return;
+          }
+          
           result = calculations.calculateGroundBattleDamage(
             attacker,
             defender,
-            units || attacker.military.soldiers,
-            units || attacker.military.tanks
+            soldiers,  // Soldiers from options
+            tanks      // Tanks from options
           )
+          
+          console.log('Battle Result:', result)
+          console.log('=== BATTLE INTERFACE DEBUG END ===')
           break
         
         case 'airstrike':
+          console.log('=== AIRSTRIKE EXECUTION DEBUG ===')
+          console.log('Target parameter:', target)
+          console.log('Units parameter:', units)
+          console.log('Attacker aircraft:', attacker.military.aircraft)
+          
+          if (!target) {
+            console.log('ERROR: No target specified for airstrike!')
+            return
+          }
+          
           result = calculations.calculateAirBattleDamage(
             attacker,
             defender,
             units || attacker.military.aircraft,
             target as 'aircraft' | 'soldiers' | 'tanks' | 'ships'
           )
+          
+          console.log('=== AIRSTRIKE EXECUTION DEBUG END ===')
           break
         
         case 'naval_battle':

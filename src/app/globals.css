@@ -1,26 +1,128 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --background: #0a0f0a;
+  --foreground: #e8f5e8;
+  --accent-green: #22c55e;
+  --accent-green-dark: #16a34a;
+  --bg-secondary: #111b11;
+  --border-color: #374151;
+  --text-muted: #9ca3af;
+  --success: #10b981;
+  --error: #ef4444;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+  line-height: 1.6;
+}
+
+/* Clean scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--accent-green);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-green-dark);
+}
+
+/* Subtle glow effect */
+.text-glow {
+  text-shadow: 0 0 8px currentColor;
+}
+
+/* Professional terminal styling */
+.terminal-card {
+  background: rgba(17, 27, 17, 0.95);
+  border: 1px solid var(--border-color);
+  backdrop-filter: blur(8px);
+  border-radius: 8px;
+}
+
+.terminal-card:hover {
+  border-color: var(--accent-green);
+  transition: border-color 0.3s ease;
+}
+
+/* Clean button styles */
+.btn-primary {
+  background: var(--accent-green);
+  color: white;
+  border: 1px solid var(--accent-green);
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.btn-primary:hover {
+  background: var(--accent-green-dark);
+  border-color: var(--accent-green-dark);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--accent-green);
+  border: 1px solid var(--accent-green);
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+  background: rgba(34, 197, 94, 0.1);
+}
+
+/* Clean input styles */
+.input-field {
+  background: rgba(17, 27, 17, 0.8);
+  border: 1px solid var(--border-color);
+  color: var(--foreground);
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  transition: border-color 0.2s ease;
+}
+
+.input-field:focus {
+  border-color: var(--accent-green);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
+}
+
+/* Professional card styling */
+.card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 1.5rem;
+}
+
+.card:hover {
+  border-color: var(--accent-green);
+  transition: border-color 0.3s ease;
+}
+
+/* Status indicators */
+.status-active {
+  color: var(--success);
+}
+
+.status-inactive {
+  color: var(--text-muted);
+}
+
+.status-error {
+  color: var(--error);
 }

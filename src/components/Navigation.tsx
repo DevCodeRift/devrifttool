@@ -8,16 +8,16 @@ export default function Navigation() {
 
   if (status === 'loading') {
     return (
-      <nav className="bg-white shadow-sm border-b">
+      <nav className="bg-gray-900/95 backdrop-blur-sm border-b border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
+          <div className="flex justify-between h-14">
             <div className="flex items-center">
-              <Link href="/" className="text-xl font-bold text-gray-900">
-                DevCodeRift
+              <Link href="/" className="text-xl font-semibold text-green-400 font-mono">
+                DevRift
               </Link>
             </div>
             <div className="flex items-center">
-              <div className="animate-pulse bg-gray-200 h-8 w-20 rounded"></div>
+              <div className="animate-pulse bg-gray-800 h-8 w-20 rounded"></div>
             </div>
           </div>
         </div>
@@ -26,39 +26,41 @@ export default function Navigation() {
   }
 
   return (
-    <nav className="bg-white shadow-sm border-b">
+    <nav className="bg-gray-900/95 backdrop-blur-sm border-b border-gray-700 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
+        <div className="flex justify-between h-14">
           <div className="flex items-center">
-            <Link href="/" className="text-xl font-bold text-gray-900">
-              DevCodeRift
+            <Link href="/" className="text-xl font-semibold text-green-400 font-mono hover:text-green-300 transition-colors">
+              DevRift
             </Link>
           </div>
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-6">
             {session ? (
               <>
                 <Link
                   href="/dashboard"
-                  className="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium"
+                  className="text-gray-300 hover:text-green-400 px-3 py-2 text-sm font-medium transition-colors"
                 >
-                  🏠 Dashboard
+                  Dashboard
                 </Link>
                 <Link
                   href="/chat"
-                  className="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium"
+                  className="text-gray-300 hover:text-green-400 px-3 py-2 text-sm font-medium transition-colors"
                 >
-                  💬 Chat
+                  Chat
                 </Link>
                 <Link
                   href="/war-simulator"
-                  className="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium"
+                  className="text-gray-300 hover:text-green-400 px-3 py-2 text-sm font-medium transition-colors"
                 >
-                  ⚔️ War Simulator
+                  War Simulator
                 </Link>
-                <span className="text-gray-700">Welcome, {session.user?.name}</span>
+                <span className="text-gray-400 text-sm font-mono">
+                  {session.user?.name}
+                </span>
                 <button
                   onClick={() => signOut()}
-                  className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium"
+                  className="btn-secondary text-sm"
                 >
                   Sign Out
                 </button>
@@ -67,13 +69,13 @@ export default function Navigation() {
               <>
                 <Link
                   href="/auth/signin"
-                  className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+                  className="text-gray-300 hover:text-green-400 px-3 py-2 text-sm font-medium transition-colors"
                 >
                   Sign In
                 </Link>
                 <Link
                   href="/auth/signup"
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium"
+                  className="btn-primary text-sm"
                 >
                   Sign Up
                 </Link>

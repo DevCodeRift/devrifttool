@@ -55,8 +55,8 @@ export default function NationStatus({ nation1, nation2, activeNation }: NationS
       {/* MAPs */}
       <div className="mb-4">
         <div className="flex justify-between items-center mb-1">
-          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Military Action Points</span>
-          <span className="text-sm font-medium text-gray-900 dark:text-white">{nation.maps}/{nation.maxMaps}</span>
+          <span className="text-sm font-medium" style={{ color: '#000000' }}>Military Action Points</span>
+          <span className="text-sm font-medium" style={{ color: '#000000' }}>{nation.maps}/{nation.maxMaps}</span>
         </div>
         <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
           <div
@@ -68,7 +68,7 @@ export default function NationStatus({ nation1, nation2, activeNation }: NationS
 
       {/* Space Control */}
       <div className="mb-4">
-        <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Space Control</h4>
+        <h4 className="text-sm font-medium mb-2" style={{ color: '#000000' }}>Space Control</h4>
         <div className="grid grid-cols-2 gap-2">
           <div className={`text-xs px-2 py-1 rounded ${nation.spaceControl.groundControl ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400'}`}>
             Ground Control
@@ -87,27 +87,27 @@ export default function NationStatus({ nation1, nation2, activeNation }: NationS
 
       {/* Military Units */}
       <div className="mb-4">
-        <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Military</h4>
-        <div className="grid grid-cols-2 gap-2 text-sm text-gray-900 dark:text-gray-300">
-          <div className="flex justify-between">
-            <span>Soldiers:</span>
-            <span className="font-medium">{formatNumber(nation.military.soldiers)}</span>
+        <h4 className="text-sm font-medium mb-2" style={{ color: '#000000' }}>Military</h4>
+        <div className="grid grid-cols-2 gap-2 text-sm" style={{ color: '#000000' }}>
+          <div className="flex justify-between" style={{ color: '#000000' }}>
+            <span style={{ color: '#000000' }}>Soldiers:</span>
+            <span className="font-medium" style={{ color: '#000000' }}>{formatNumber(nation.military.soldiers)}</span>
           </div>
-          <div className="flex justify-between">
-            <span>Tanks:</span>
-            <span className="font-medium">{formatNumber(nation.military.tanks)}</span>
+          <div className="flex justify-between" style={{ color: '#000000' }}>
+            <span style={{ color: '#000000' }}>Tanks:</span>
+            <span className="font-medium" style={{ color: '#000000' }}>{formatNumber(nation.military.tanks)}</span>
           </div>
-          <div className="flex justify-between">
-            <span>Aircraft:</span>
-            <span className="font-medium">{formatNumber(nation.military.aircraft)}</span>
+          <div className="flex justify-between" style={{ color: '#000000' }}>
+            <span style={{ color: '#000000' }}>Aircraft:</span>
+            <span className="font-medium" style={{ color: '#000000' }}>{formatNumber(nation.military.aircraft)}</span>
           </div>
-          <div className="flex justify-between">
-            <span>Ships:</span>
-            <span className="font-medium">{formatNumber(nation.military.ships)}</span>
+          <div className="flex justify-between" style={{ color: '#000000' }}>
+            <span style={{ color: '#000000' }}>Ships:</span>
+            <span className="font-medium" style={{ color: '#000000' }}>{formatNumber(nation.military.ships)}</span>
           </div>
-          <div className="flex justify-between">
-            <span>Missiles:</span>
-            <span className="font-medium">{formatNumber(nation.military.missiles)}</span>
+          <div className="flex justify-between" style={{ color: '#000000' }}>
+            <span style={{ color: '#000000' }}>Missiles:</span>
+            <span className="font-medium" style={{ color: '#000000' }}>{formatNumber(nation.military.missiles)}</span>
           </div>
           <div className="flex justify-between">
             <span>Nukes:</span>
@@ -122,8 +122,8 @@ export default function NationStatus({ nation1, nation2, activeNation }: NationS
 
       {/* Resources */}
       <div className="mb-4">
-        <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Resources</h4>
-        <div className="grid grid-cols-2 gap-2 text-xs text-gray-900 dark:text-gray-300">
+        <h4 className="text-sm font-medium mb-2" style={{ color: '#000000' }}>Resources</h4>
+        <div className="grid grid-cols-2 gap-2 text-xs" style={{ color: '#000000' }}>
           <div className="flex justify-between">
             <span>Money:</span>
             <span className="font-medium">${formatNumber(Math.floor(nation.resources.money))}</span>
@@ -153,8 +153,8 @@ export default function NationStatus({ nation1, nation2, activeNation }: NationS
 
       {/* War Settings */}
       <div>
-        <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">War Settings</h4>
-        <div className="text-xs space-y-1 text-gray-900 dark:text-gray-300">
+        <h4 className="text-sm font-medium mb-2" style={{ color: '#000000' }}>War Settings</h4>
+        <div className="text-xs space-y-1" style={{ color: '#000000' }}>
           <div className="flex justify-between">
             <span>War Policy:</span>
             <span className="font-medium capitalize">{nation.warPolicy}</span>

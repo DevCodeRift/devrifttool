@@ -164,22 +164,25 @@ export default function ChatRoom() {
 
   if (!session) {
     return (
-      <div className="flex items-center justify-center h-64 text-gray-500">
-        Please sign in to join the chat
+      <div className="flex items-center justify-center h-64 text-gray-400 terminal-card">
+        <div className="text-center">
+          <div className="text-lg mb-2">Access Denied</div>
+          <div className="text-sm opacity-70">Authentication required to access chat</div>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="flex h-96 bg-white rounded-lg shadow-lg overflow-hidden">
+    <div className="flex h-96 terminal-card overflow-hidden font-mono">
       {/* Chat Messages */}
       <div className="flex-1 flex flex-col">
-        <div className="bg-gray-50 px-4 py-2 border-b">
-          <h3 className="font-medium text-gray-900">Chat Room</h3>
-          <p className="text-sm text-gray-500">Welcome, {session.user?.name}!</p>
+        <div className="bg-gray-800/50 px-4 py-2 border-b border-gray-700">
+          <h3 className="font-medium text-green-400">Communication Hub</h3>
+          <p className="text-sm text-gray-400">Welcome, {session.user?.name}</p>
         </div>
         
-        <div className="flex-1 overflow-y-auto p-4 space-y-3">
+        <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-900/30">
           {messages.map((msg) => (
             <div
               key={msg.id}
@@ -188,36 +191,36 @@ export default function ChatRoom() {
               }`}
             >
               <div
-                className={`max-w-xs px-3 py-2 rounded-lg ${
+                className={`max-w-xs px-3 py-2 border rounded ${
                   msg.username === session.user?.name
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-200 text-gray-900'
+                    ? 'bg-green-400/10 border-green-400/50 text-green-300'
+                    : 'bg-gray-800/60 border-gray-600 text-gray-300'
                 }`}
               >
-                <div className="text-xs opacity-75 mb-1">
+                <div className="text-xs opacity-60 mb-1">
                   {msg.username} • {formatTime(msg.created_at)}
                 </div>
-                <div>{msg.message}</div>
+                <div className="text-sm">{msg.message}</div>
               </div>
             </div>
           ))}
           <div ref={messagesEndRef} />
         </div>
 
-        <form onSubmit={sendMessage} className="p-4 border-t">
+        <form onSubmit={sendMessage} className="p-4 border-t border-gray-700 bg-gray-800/30">
           <div className="flex space-x-2">
             <input
               type="text"
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
               placeholder="Type a message..."
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="input-field flex-1 text-sm"
               disabled={isLoading}
             />
             <button
               type="submit"
               disabled={isLoading || !newMessage.trim()}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="btn-primary text-sm"
             >
               {isLoading ? 'Sending...' : 'Send'}
             </button>
@@ -226,21 +229,21 @@ export default function ChatRoom() {
       </div>
 
       {/* Online Users Sidebar */}
-      <div className="w-48 bg-gray-50 border-l">
-        <div className="p-3 border-b">
-          <h4 className="font-medium text-gray-900">Online Users</h4>
+      <div className="w-48 bg-gray-800/30 border-l border-gray-700">
+        <div className="p-3 border-b border-gray-700">
+          <h4 className="font-medium text-green-400 text-sm">Online Users</h4>
         </div>
         <div className="p-3 space-y-2">
           <div className="flex items-center space-x-2">
-            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-            <span className="text-sm text-gray-700">{session.user?.name} (You)</span>
+            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+            <span className="text-xs text-gray-300">{session.user?.name} (You)</span>
           </div>
           {onlineUsers
             .filter(user => user.username !== session.user?.name)
             .map((user) => (
               <div key={user.user_id} className="flex items-center space-x-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span className="text-sm text-gray-700">{user.username}</span>
+                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                <span className="text-xs text-gray-300">{user.username}</span>
               </div>
             ))}
           {onlineUsers.filter(user => user.username !== session.user?.name).length === 0 && (

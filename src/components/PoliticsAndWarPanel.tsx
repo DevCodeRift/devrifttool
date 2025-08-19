@@ -176,52 +176,52 @@ export default function PoliticsAndWarPanel() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 font-mono">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-white">Politics & War</h2>
+        <h2 className="text-2xl font-bold text-matrix-green text-glow">[POLITICS & WAR INTEL MODULE]</h2>
       </div>
 
       {/* Tab Navigation */}
-      <div className="flex space-x-1 bg-gray-800 p-1 rounded-lg">
+      <div className="flex space-x-1 bg-black/60 border border-matrix-green/30 p-1">
         <button
           onClick={() => setActiveTab('config')}
-          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+          className={`px-4 py-2 text-sm font-medium transition-colors border ${
             activeTab === 'config'
-              ? 'bg-blue-600 text-white'
-              : 'text-gray-300 hover:text-white hover:bg-gray-700'
+              ? 'bg-matrix-green/20 border-matrix-green text-matrix-green text-glow'
+              : 'text-matrix-green/70 hover:text-matrix-green hover:bg-matrix-green/10 border-matrix-green/30'
           }`}
         >
-          Configuration
+          [CONFIG]
         </button>
         <button
           onClick={() => setActiveTab('nation')}
-          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+          className={`px-4 py-2 text-sm font-medium transition-colors border ${
             activeTab === 'nation'
-              ? 'bg-blue-600 text-white'
-              : 'text-gray-300 hover:text-white hover:bg-gray-700'
+              ? 'bg-matrix-green/20 border-matrix-green text-matrix-green text-glow'
+              : 'text-matrix-green/70 hover:text-matrix-green hover:bg-matrix-green/10 border-matrix-green/30'
           }`}
         >
-          Nation
+          [NATION]
         </button>
         <button
           onClick={() => setActiveTab('alliance')}
-          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+          className={`px-4 py-2 text-sm font-medium transition-colors border ${
             activeTab === 'alliance'
-              ? 'bg-blue-600 text-white'
-              : 'text-gray-300 hover:text-white hover:bg-gray-700'
+              ? 'bg-matrix-green/20 border-matrix-green text-matrix-green text-glow'
+              : 'text-matrix-green/70 hover:text-matrix-green hover:bg-matrix-green/10 border-matrix-green/30'
           }`}
         >
-          Alliance
+          [ALLIANCE]
         </button>
         <button
           onClick={() => setActiveTab('wars')}
-          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+          className={`px-4 py-2 text-sm font-medium transition-colors border ${
             activeTab === 'wars'
-              ? 'bg-blue-600 text-white'
-              : 'text-gray-300 hover:text-white hover:bg-gray-700'
+              ? 'bg-matrix-green/20 border-matrix-green text-matrix-green text-glow'
+              : 'text-matrix-green/70 hover:text-matrix-green hover:bg-matrix-green/10 border-matrix-green/30'
           }`}
         >
-          Wars
+          [WARS]
         </button>
       </div>
 

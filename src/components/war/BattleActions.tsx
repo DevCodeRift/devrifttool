@@ -10,7 +10,7 @@ interface BattleActionsProps {
     actionType: ActionType,
     target?: string,
     units?: number,
-    options?: Record<string, unknown>
+    options?: { soldiers?: number; tanks?: number; [key: string]: unknown }
   ) => void
 }
 
@@ -19,6 +19,11 @@ export default function BattleActions({ attacker, onExecuteAction }: BattleActio
   const [selectedTarget, setSelectedTarget] = useState<string>('')
   const [customUnits, setCustomUnits] = useState<number>(0)
   const [useCustomUnits, setUseCustomUnits] = useState(false)
+  
+  // Ground battle specific inputs
+  const [groundBattleSoldiers, setGroundBattleSoldiers] = useState<number>(0)
+  const [groundBattleTanks, setGroundBattleTanks] = useState<number>(0)
+  const [useCustomGroundUnits, setUseCustomGroundUnits] = useState(false)
 
   const getMAPCost = (action: ActionType): number => {
     switch (action) {
@@ -91,9 +96,19 @@ export default function BattleActions({ attacker, onExecuteAction }: BattleActio
     const targets = getAvailableTargets(selectedAction)
     if (targets.length > 0 && !selectedTarget) return
 
-    const units = useCustomUnits ? customUnits : getMaxUnits(selectedAction)
-    
-    onExecuteAction(selectedAction, selectedTarget, units)
+    // Handle ground battle with separate soldier/tank inputs
+    if (selectedAction === 'ground_battle') {
+      const soldiers = useCustomGroundUnits ? groundBattleSoldiers : attacker.military.soldiers
+      const tanks = useCustomGroundUnits ? groundBattleTanks : attacker.military.tanks
+      
+      onExecuteAction(selectedAction, selectedTarget, soldiers, { 
+        soldiers, 
+        tanks 
+      })
+    } else {
+      const units = useCustomUnits ? customUnits : getMaxUnits(selectedAction)
+      onExecuteAction(selectedAction, selectedTarget, units)
+    }
     
     // Reset form
     setSelectedAction(null)
@@ -213,7 +228,61 @@ export default function BattleActions({ attacker, onExecuteAction }: BattleActio
           )}
 
           {/* Unit Selection */}
-          {selectedAction !== 'fortify' && selectedAction !== 'spy_operation' && (
+          {selectedAction === 'ground_battle' ? (
+            /* Ground Battle - Separate Soldier and Tank Inputs */
+            <div className="mb-4">
+              <div className="flex items-center gap-4 mb-2">
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    checked={!useCustomGroundUnits}
+                    onChange={() => setUseCustomGroundUnits(false)}
+                    className="mr-2"
+                  />
+                  Use all available units
+                </label>
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    checked={useCustomGroundUnits}
+                    onChange={() => setUseCustomGroundUnits(true)}
+                    className="mr-2"
+                  />
+                  Use custom amounts
+                </label>
+              </div>
+              
+              {useCustomGroundUnits && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Soldiers</label>
+                    <input
+                      type="number"
+                      min="0"
+                      max={attacker.military.soldiers}
+                      value={groundBattleSoldiers}
+                      onChange={(e) => setGroundBattleSoldiers(parseInt(e.target.value) || 0)}
+                      placeholder={`Max: ${attacker.military.soldiers.toLocaleString()}`}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Tanks</label>
+                    <input
+                      type="number"
+                      min="0"
+                      max={attacker.military.tanks}
+                      value={groundBattleTanks}
+                      onChange={(e) => setGroundBattleTanks(parseInt(e.target.value) || 0)}
+                      placeholder={`Max: ${attacker.military.tanks.toLocaleString()}`}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : selectedAction !== 'fortify' && selectedAction !== 'spy_operation' && (
+            /* Other Actions - Single Unit Input */
             <div className="mb-4">
               <div className="flex items-center gap-4 mb-2">
                 <label className="flex items-center">
@@ -258,9 +327,16 @@ export default function BattleActions({ attacker, onExecuteAction }: BattleActio
             <div className="text-sm text-gray-600 space-y-1">
               <div>MAP Cost: {getMAPCost(selectedAction)}</div>
               <div>Remaining MAPs after action: {attacker.maps - getMAPCost(selectedAction)}</div>
-              {selectedAction !== 'fortify' && selectedAction !== 'spy_operation' && (
+              
+              {selectedAction === 'ground_battle' ? (
+                <div>
+                  <div>Soldiers to use: {useCustomGroundUnits ? groundBattleSoldiers.toLocaleString() : attacker.military.soldiers.toLocaleString()}</div>
+                  <div>Tanks to use: {useCustomGroundUnits ? groundBattleTanks.toLocaleString() : attacker.military.tanks.toLocaleString()}</div>
+                </div>
+              ) : selectedAction !== 'fortify' && selectedAction !== 'spy_operation' && (
                 <div>Units to use: {useCustomUnits ? customUnits.toLocaleString() : getMaxUnits(selectedAction).toLocaleString()}</div>
               )}
+              
               {selectedTarget && (
                 <div>Target: {selectedTarget.charAt(0).toUpperCase() + selectedTarget.slice(1).replace('_', ' ')}</div>
               )}
