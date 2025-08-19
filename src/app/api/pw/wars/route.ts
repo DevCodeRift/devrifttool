@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
     const filters: Record<string, unknown> = {};
     
     if (nationId) {
-      filters.nation_id = [nationId];
+      filters.nation_id = [parseInt(nationId, 10)];
     }
     
     if (active !== null) {

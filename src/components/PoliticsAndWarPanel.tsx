@@ -13,9 +13,46 @@ interface PoliticsAndWarData {
 
 export default function PoliticsAndWarPanel() {
   const [data, setData] = useState<PoliticsAndWarData>({ loading: true });
-  const [activeTab, setActiveTab] = useState<'nation' | 'alliance' | 'wars'>('nation');
+  const [activeTab, setActiveTab] = useState<'nation' | 'alliance' | 'wars' | 'config'>('config');
   const [customNationId, setCustomNationId] = useState('');
   const [customAllianceId, setCustomAllianceId] = useState('');
+  const [configStatus, setConfigStatus] = useState<{
+    configuration: {
+      hasApiKey: boolean;
+      hasNationId: boolean;
+      apiKeyLength: number;
+      baseUrl: string;
+    };
+    connectionTest: {
+      success: boolean;
+      error: string | null;
+    };
+    environment: string;
+    vercel: boolean;
+  } | null>(null);
+
+  // Load configuration status
+  const loadConfigStatus = async () => {
+    try {
+      setData(prev => ({ ...prev, loading: true, error: undefined }));
+      
+      const response = await fetch('/api/pw/config');
+      const result = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to check configuration');
+      }
+      
+      setConfigStatus(result);
+      setData(prev => ({ ...prev, loading: false }));
+    } catch (error) {
+      setData(prev => ({ 
+        ...prev, 
+        error: error instanceof Error ? error.message : 'Unknown error',
+        loading: false 
+      }));
+    }
+  };
 
   // Load nation data
   const loadNationData = async (nationId?: string) => {
@@ -101,7 +138,9 @@ export default function PoliticsAndWarPanel() {
 
   // Load initial data
   useEffect(() => {
-    if (activeTab === 'nation') {
+    if (activeTab === 'config') {
+      loadConfigStatus();
+    } else if (activeTab === 'nation') {
       loadNationData();
     } else if (activeTab === 'wars') {
       loadWarsData();
@@ -144,6 +183,16 @@ export default function PoliticsAndWarPanel() {
 
       {/* Tab Navigation */}
       <div className="flex space-x-1 bg-gray-800 p-1 rounded-lg">
+        <button
+          onClick={() => setActiveTab('config')}
+          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+            activeTab === 'config'
+              ? 'bg-blue-600 text-white'
+              : 'text-gray-300 hover:text-white hover:bg-gray-700'
+          }`}
+        >
+          Configuration
+        </button>
         <button
           onClick={() => setActiveTab('nation')}
           className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
@@ -189,6 +238,90 @@ export default function PoliticsAndWarPanel() {
         <div className="text-center py-8">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
           <p className="text-gray-400 mt-2">Loading...</p>
+        </div>
+      )}
+
+      {/* Configuration Tab */}
+      {activeTab === 'config' && !data.loading && (
+        <div className="space-y-4">
+          <div className="bg-gray-800 rounded-lg p-6">
+            <h3 className="text-xl font-bold text-white mb-4">API Configuration Status</h3>
+            
+            {configStatus && (
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-gray-700 p-4 rounded">
+                    <h4 className="text-white font-medium mb-2">Environment</h4>
+                    <p className="text-gray-300">
+                      Environment: <span className="text-blue-400">{configStatus.environment}</span>
+                    </p>
+                    <p className="text-gray-300">
+                      Vercel: <span className={configStatus.vercel ? 'text-green-400' : 'text-red-400'}>
+                        {configStatus.vercel ? 'Yes' : 'No'}
+                      </span>
+                    </p>
+                  </div>
+                  
+                  <div className="bg-gray-700 p-4 rounded">
+                    <h4 className="text-white font-medium mb-2">API Configuration</h4>
+                    <p className="text-gray-300">
+                      API Key: <span className={configStatus.configuration.hasApiKey ? 'text-green-400' : 'text-red-400'}>
+                        {configStatus.configuration.hasApiKey ? `✓ (${configStatus.configuration.apiKeyLength} chars)` : '✗ Not configured'}
+                      </span>
+                    </p>
+                    <p className="text-gray-300">
+                      Nation ID: <span className={configStatus.configuration.hasNationId ? 'text-green-400' : 'text-red-400'}>
+                        {configStatus.configuration.hasNationId ? '✓ Configured' : '✗ Not configured'}
+                      </span>
+                    </p>
+                  </div>
+                </div>
+
+                <div className="bg-gray-700 p-4 rounded">
+                  <h4 className="text-white font-medium mb-2">Connection Test</h4>
+                  {configStatus.connectionTest.success ? (
+                    <div className="text-green-400">
+                      ✓ API connection successful! You can now use the Politics & War features.
+                    </div>
+                  ) : (
+                    <div>
+                      <div className="text-red-400 mb-2">
+                        ✗ API connection failed
+                      </div>
+                      {configStatus.connectionTest.error && (
+                        <div className="text-gray-300 text-sm bg-gray-800 p-2 rounded">
+                          Error: {configStatus.connectionTest.error}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                <div className="bg-blue-500/20 border border-blue-500 rounded-lg p-4">
+                  <h4 className="text-blue-400 font-medium mb-2">🔧 Setup Instructions</h4>
+                  <div className="text-gray-300 text-sm space-y-2">
+                    <p>1. Get your Politics & War API key from: <span className="text-blue-400">https://politicsandwar.com/api/</span></p>
+                    <p>2. Add the following environment variables:</p>
+                    <div className="bg-gray-800 p-2 rounded font-mono text-xs">
+                      <div>POLITICS_AND_WAR_API_KEY=your_api_key_here</div>
+                      <div>POLITICS_AND_WAR_NATION_ID=your_nation_id_here</div>
+                    </div>
+                    <p>3. For Vercel deployment, add these in your project settings</p>
+                    <p>4. For local development, add them to your .env.local file</p>
+                  </div>
+                </div>
+
+                <div className="flex justify-center">
+                  <button
+                    onClick={loadConfigStatus}
+                    className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                  >
+                    🔄 Refresh Configuration
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       )}
 

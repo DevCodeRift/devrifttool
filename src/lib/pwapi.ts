@@ -77,16 +77,16 @@ export interface War {
   date: string;
   reason: string;
   war_type: string;
-  attacker_id: string;
-  defender_id: string;
-  attacker_alliance_id?: string;
-  defender_alliance_id?: string;
+  att_id: string;
+  def_id: string;
+  att_alliance_id?: string;
+  def_alliance_id?: string;
   ground_control: string;
   air_superiority: string;
   naval_blockade: string;
   attacker: Nation;
   defender: Nation;
-  attacks: Attack[];
+  attacks?: Attack[];
 }
 
 export interface Attack {
@@ -156,65 +156,139 @@ class PoliticsAndWarAPI {
     }
   }
 
-  // Get nation information
+  // Get nation information using the 'me' query or specific nation ID
   async getNation(nationId?: string): Promise<Nation | null> {
-    const id = nationId || this.nationId;
-    if (!id) {
-      throw new Error('Nation ID is required');
+    // If no nation ID provided, get the current user's nation
+    if (!nationId) {
+      const query = `
+        query GetMyNation {
+          me {
+            nation {
+              id
+              nation_name
+              leader_name
+              continent
+              war_policy
+              domestic_policy
+              color
+              alliance_id
+              alliance {
+                id
+                name
+                acronym
+                color
+              }
+              score
+              update_tz
+              population
+              flag
+              vacation_mode_turns
+              beige_turns
+              espionage_available
+              last_active
+              date
+              soldiers
+              tanks
+              aircraft
+              ships
+              missiles
+              nukes
+              projects
+              turns_since_last_city
+              turns_since_last_project
+              wars_won
+              wars_lost
+              tax_id
+              alliance_seniority
+              money
+              coal
+              oil
+              uranium
+              iron
+              bauxite
+              lead
+              gasoline
+              munitions
+              steel
+              aluminum
+              food
+              credits
+            }
+          }
+        }
+      `;
+
+      const data = await this.graphqlRequest(query);
+      return data.me?.nation;
     }
 
+    // Get specific nation by ID
     const query = `
-      query GetNation($id: ID!) {
-        nation(id: $id) {
-          id
-          nation_name
-          leader_name
-          continent
-          war_policy
-          domestic_policy
-          color
-          alliance_id
-          alliance {
+      query GetNation($id: [Int!]) {
+        nations(id: $id, first: 1) {
+          data {
             id
-            name
-            acronym
+            nation_name
+            leader_name
+            continent
+            war_policy
+            domestic_policy
             color
+            alliance_id
+            alliance {
+              id
+              name
+              acronym
+              color
+            }
+            score
+            update_tz
+            population
+            flag
+            vacation_mode_turns
+            beige_turns
+            espionage_available
+            last_active
+            date
+            soldiers
+            tanks
+            aircraft
+            ships
+            missiles
+            nukes
+            projects
+            turns_since_last_city
+            turns_since_last_project
+            wars_won
+            wars_lost
+            tax_id
+            alliance_seniority
+            money
+            coal
+            oil
+            uranium
+            iron
+            bauxite
+            lead
+            gasoline
+            munitions
+            steel
+            aluminum
+            food
+            credits
           }
-          score
-          update_tz
-          population
-          flag
-          vacation_mode_turns
-          beige_turns
-          espionage_available
-          last_active
-          date
-          soldiers
-          tanks
-          aircraft
-          ships
-          missiles
-          nukes
-          projects
-          city_timer
-          project_timer
-          wars_won
-          wars_lost
-          tax_id
-          alliance_position
-          alliance_position_id
         }
       }
     `;
 
-    const data = await this.graphqlRequest(query, { id });
-    return data.nation;
+    const data = await this.graphqlRequest(query, { id: [parseInt(nationId)] });
+    return data.nations?.data?.[0] || null;
   }
 
   // Get multiple nations
   async getNations(filters?: {
     first?: number;
-    alliance_id?: string[];
+    alliance_id?: number[];
     color?: string[];
     min_score?: number;
     max_score?: number;
@@ -222,7 +296,7 @@ class PoliticsAndWarAPI {
     const query = `
       query GetNations(
         $first: Int
-        $alliance_id: [ID]
+        $alliance_id: [Int]
         $color: [String]
         $min_score: Float
         $max_score: Float
@@ -265,44 +339,46 @@ class PoliticsAndWarAPI {
   // Get alliance information
   async getAlliance(allianceId: string): Promise<Alliance | null> {
     const query = `
-      query GetAlliance($id: ID!) {
-        alliance(id: $id) {
-          id
-          name
-          acronym
-          score
-          color
-          date
-          nations {
+      query GetAlliance($id: [Int!]) {
+        alliances(id: $id, first: 1) {
+          data {
             id
-            nation_name
-            leader_name
+            name
+            acronym
             score
-            last_active
+            color
+            date
+            nations {
+              id
+              nation_name
+              leader_name
+              score
+              last_active
+            }
           }
         }
       }
     `;
 
-    const data = await this.graphqlRequest(query, { id: allianceId });
-    return data.alliance;
+    const data = await this.graphqlRequest(query, { id: [parseInt(allianceId)] });
+    return data.alliances?.data?.[0] || null;
   }
 
   // Get wars involving a nation
   async getWars(filters?: {
-    nation_id?: string[];
-    alliance_id?: string[];
-    min_id?: string;
-    max_id?: string;
+    nation_id?: number[];
+    alliance_id?: number[];
+    min_id?: number;
+    max_id?: number;
     active?: boolean;
     first?: number;
   }): Promise<War[]> {
     const query = `
       query GetWars(
-        $nation_id: [ID]
-        $alliance_id: [ID]
-        $min_id: ID
-        $max_id: ID
+        $nation_id: [Int]
+        $alliance_id: [Int]
+        $min_id: Int
+        $max_id: Int
         $active: Boolean
         $first: Int
       ) {
@@ -319,10 +395,10 @@ class PoliticsAndWarAPI {
             date
             reason
             war_type
-            attacker_id
-            defender_id
-            attacker_alliance_id
-            defender_alliance_id
+            att_id
+            def_id
+            att_alliance_id
+            def_alliance_id
             ground_control
             air_superiority
             naval_blockade
@@ -349,13 +425,45 @@ class PoliticsAndWarAPI {
 
   // Get nation's cities
   async getCities(nationId?: string): Promise<City[]> {
-    const id = nationId || this.nationId;
-    if (!id) {
-      throw new Error('Nation ID is required');
+    // If no nation ID provided, get the current user's cities
+    if (!nationId) {
+      const query = `
+        query GetMyCities {
+          me {
+            nation {
+              cities {
+                id
+                nation_id
+                name
+                date
+                infrastructure
+                land
+                powered
+                oil_power
+                wind_power
+                coal_power
+                nuclear_power
+                coal_mine
+                oil_well
+                uranium_mine
+                barracks
+                farm
+                police_station
+                hospital
+                recycling_center
+                subway
+              }
+            }
+          }
+        }
+      `;
+
+      const data = await this.graphqlRequest(query);
+      return data.me?.nation?.cities || [];
     }
 
     const query = `
-      query GetCities($nation_id: [ID!]) {
+      query GetCities($nation_id: [Int!]) {
         cities(nation_id: $nation_id) {
           data {
             id
@@ -383,7 +491,7 @@ class PoliticsAndWarAPI {
       }
     `;
 
-    const data = await this.graphqlRequest(query, { nation_id: [id] });
+    const data = await this.graphqlRequest(query, { nation_id: [parseInt(nationId)] });
     return data.cities?.data || [];
   }
 
