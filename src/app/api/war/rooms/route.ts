@@ -35,15 +35,14 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const roomId = searchParams.get('roomId')
-    const includePrivate = searchParams.get('includePrivate') === 'true'
 
     if (roomId) {
       // Get specific room with players
       const { data: room, error: roomError } = await supabase
-        .from('rooms')
+        .from('battle_rooms')
         .select(`
           *,
-          room_players(*)
+          battle_room_players(*)
         `)
         .eq('id', roomId)
         .single()
@@ -52,61 +51,93 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: 'Room not found' }, { status: 404 })
       }
 
-      // Get spectator count
-      const { count: spectatorCount } = await supabase
-        .from('spectators')
-        .select('*', { count: 'exact', head: true })
-        .eq('room_id', roomId)
+      // Get spectator count (for now, assume 0 since we don't have spectators table)
+      const spectatorCount = 0
 
       const roomData: RoomData = {
         id: room.id,
-        host_name: room.host_name,
+        host_name: room.room_code, // Use room_code as a fallback for host_name
         settings: room.settings,
-        player_count: room.player_count,
-        max_players: room.max_players,
+        player_count: room.battle_room_players?.length || 0,
+        max_players: 2, // Default for multiplayer battles
         status: room.status,
-        is_private: room.is_private,
+        is_private: false, // Default for now
         created_at: room.created_at,
-        players: room.room_players.map((p: {
+        players: room.battle_room_players?.map((p: {
           player_id: string
           player_name: string
           side: 'attacker' | 'defender' | null
           nation_data: Nation | null
           is_host: boolean
           is_ready: boolean
-          is_spectator: boolean
         }) => ({
           id: p.player_id,
-          playerName: p.player_name, // Fix: Convert snake_case to camelCase
+          playerName: p.player_name,
           side: p.side,
-          nationData: p.nation_data, // Fix: Convert snake_case to camelCase
-          isHost: p.is_host, // Fix: Convert snake_case to camelCase
-          isReady: p.is_ready, // Fix: Convert snake_case to camelCase
-          isSpectator: p.is_spectator // Fix: Convert snake_case to camelCase
-        })),
-        spectator_count: spectatorCount || 0
+          nationData: p.nation_data,
+          isHost: p.is_host,
+          isReady: p.is_ready,
+          isSpectator: false
+        })) || [],
+        spectator_count: spectatorCount
       }
 
       return NextResponse.json(roomData)
     } else {
-      // Get all rooms
-      let query = supabase
-        .from('active_rooms')
+      // Get all waiting rooms first
+      const { data: rooms, error: roomsError } = await supabase
+        .from('battle_rooms')
         .select('*')
+        .eq('status', 'waiting')
         .order('created_at', { ascending: false })
 
-      if (!includePrivate) {
-        query = query.eq('is_private', false)
-      }
-
-      const { data: rooms, error } = await query
-
-      if (error) {
-        console.error('Error fetching rooms:', error)
+      if (roomsError) {
+        console.error('Error fetching rooms:', roomsError)
         return NextResponse.json({ error: 'Failed to fetch rooms' }, { status: 500 })
       }
 
-      return NextResponse.json(rooms || [])
+      if (!rooms || rooms.length === 0) {
+        return NextResponse.json([])
+      }
+
+      // Get players for each room
+      const roomIds = rooms.map(room => room.id)
+      const { data: players, error: playersError } = await supabase
+        .from('battle_room_players')
+        .select('*')
+        .in('room_id', roomIds)
+
+      if (playersError) {
+        console.error('Error fetching players:', playersError)
+        return NextResponse.json({ error: 'Failed to fetch players' }, { status: 500 })
+      }
+
+      // Transform the data to match the expected format
+      const formattedRooms = rooms.map((room: {
+        id: string
+        room_code: string
+        status: string
+        settings: BattleSettings
+        created_at: string
+      }) => {
+        const roomPlayers = players?.filter(p => p.room_id === room.id) || []
+        const hostPlayer = roomPlayers.find(p => p.is_host)
+        
+        return {
+          id: room.id,
+          hostName: hostPlayer?.player_name || 'Unknown Host',
+          settings: room.settings,
+          playerCount: roomPlayers.length,
+          maxPlayers: 2,
+          status: room.status,
+          isPrivate: false,
+          createdAt: room.created_at,
+          players: [],
+          spectatorCount: 0
+        }
+      }) || []
+
+      return NextResponse.json(formattedRooms)
     }
   } catch (error) {
     console.error('Error in GET /api/war/rooms:', error)
@@ -125,13 +156,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Create room
-    const { error: roomError } = await supabase
-      .from('rooms')
+    const { data: newRoom, error: roomError } = await supabase
+      .from('battle_rooms')
       .insert({
-        id: roomId,
-        host_name: hostName,
+        room_code: roomId,
         settings,
-        is_private: settings.isPrivate || false,
         status: 'waiting'
       })
       .select()
@@ -144,9 +173,9 @@ export async function POST(request: NextRequest) {
 
     // Add host as player
     const { error: playerError } = await supabase
-      .from('room_players')
+      .from('battle_room_players')
       .insert({
-        room_id: roomId,
+        room_id: newRoom.id,
         player_id: playerId,
         player_name: hostName,
         is_host: true
@@ -155,11 +184,11 @@ export async function POST(request: NextRequest) {
     if (playerError) {
       console.error('Error adding host player:', playerError)
       // Clean up room if player creation failed
-      await supabase.from('rooms').delete().eq('id', roomId)
+      await supabase.from('battle_rooms').delete().eq('id', newRoom.id)
       return NextResponse.json({ error: 'Failed to add host player' }, { status: 500 })
     }
 
-    return NextResponse.json({ success: true, roomId })
+    return NextResponse.json({ success: true, roomId: newRoom.id })
   } catch (error) {
     console.error('Error in POST /api/war/rooms:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
@@ -182,7 +211,7 @@ export async function PUT(request: NextRequest) {
         
         // Check if player is already in the room
         const { data: existingPlayer } = await supabase
-          .from('room_players')
+          .from('battle_room_players')
           .select('id')
           .eq('room_id', roomId)
           .eq('player_id', playerId)
@@ -195,18 +224,28 @@ export async function PUT(request: NextRequest) {
         
         // Check if room exists and has space
         const { data: room } = await supabase
-          .from('rooms')
-          .select('player_count, max_players, status')
+          .from('battle_rooms')
+          .select('status')
           .eq('id', roomId)
           .single()
 
-        if (!room || room.status !== 'waiting' || room.player_count >= room.max_players) {
+        if (!room || room.status !== 'waiting') {
           return NextResponse.json({ error: 'Room not available' }, { status: 400 })
+        }
+
+        // Check current player count
+        const { count: playerCount } = await supabase
+          .from('battle_room_players')
+          .select('id', { count: 'exact' })
+          .eq('room_id', roomId)
+
+        if (playerCount && playerCount >= 2) {
+          return NextResponse.json({ error: 'Room is full' }, { status: 400 })
         }
 
         // Add player
         const { error: joinError } = await supabase
-          .from('room_players')
+          .from('battle_room_players')
           .insert({
             room_id: roomId,
             player_id: playerId,
@@ -221,12 +260,6 @@ export async function PUT(request: NextRequest) {
           }
           return NextResponse.json({ error: 'Failed to join room' }, { status: 500 })
         }
-
-        // Update player count
-        await supabase
-          .from('rooms')
-          .update({ player_count: room.player_count + 1 })
-          .eq('id', roomId)
 
         break
 
@@ -243,7 +276,7 @@ export async function PUT(request: NextRequest) {
         if (isReady !== undefined) updateData.is_ready = isReady
 
         const { error: updateError } = await supabase
-          .from('room_players')
+          .from('battle_room_players')
           .update(updateData)
           .eq('room_id', roomId)
           .eq('player_id', playerId)
@@ -257,7 +290,7 @@ export async function PUT(request: NextRequest) {
       case 'start_battle':
         // Update room status to in_progress
         const { error: startError } = await supabase
-          .from('rooms')
+          .from('battle_rooms')
           .update({ 
             status: 'in_progress',
             started_at: new Date().toISOString()
@@ -294,7 +327,7 @@ export async function DELETE(request: NextRequest) {
 
     // Check if player is host
     const { data: player } = await supabase
-      .from('room_players')
+      .from('battle_room_players')
       .select('is_host')
       .eq('room_id', roomId)
       .eq('player_id', playerId)
@@ -303,7 +336,7 @@ export async function DELETE(request: NextRequest) {
     if (player?.is_host) {
       // Host leaving - delete entire room
       const { error } = await supabase
-        .from('rooms')
+        .from('battle_rooms')
         .delete()
         .eq('id', roomId)
 
@@ -311,29 +344,15 @@ export async function DELETE(request: NextRequest) {
         return NextResponse.json({ error: 'Failed to delete room' }, { status: 500 })
       }
     } else {
-      // Regular player leaving - remove player and update count
+      // Regular player leaving - remove player
       const { error: removeError } = await supabase
-        .from('room_players')
+        .from('battle_room_players')
         .delete()
         .eq('room_id', roomId)
         .eq('player_id', playerId)
 
       if (removeError) {
         return NextResponse.json({ error: 'Failed to leave room' }, { status: 500 })
-      }
-
-      // Update player count
-      const { data: room } = await supabase
-        .from('rooms')
-        .select('player_count')
-        .eq('id', roomId)
-        .single()
-
-      if (room) {
-        await supabase
-          .from('rooms')
-          .update({ player_count: Math.max(0, room.player_count - 1) })
-          .eq('id', roomId)
       }
     }
 
