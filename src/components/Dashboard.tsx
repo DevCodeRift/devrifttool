@@ -5,6 +5,7 @@ import Navigation from '@/components/Navigation'
 import VersionBadge from '@/components/VersionBadge'
 import ChatRoom from '@/components/ChatRoom'
 import { useState } from 'react'
+import versionInfo from '../../version.json'
 
 export default function Dashboard() {
   const { data: session } = useSession()
@@ -55,7 +56,7 @@ export default function Dashboard() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">Version</span>
-                    <span className="text-sm font-medium text-blue-600">Alpha v1.00</span>
+                    <span className="text-sm font-medium text-blue-600">{versionInfo.stage} v{versionInfo.version}</span>
                   </div>
                 </div>
               </div>

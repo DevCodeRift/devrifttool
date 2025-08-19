@@ -6,7 +6,11 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "version:bump": "node scripts/increment-version.js",
+    "version:current": "node -e \"console.log('Current version:', JSON.parse(require('fs').readFileSync('version.json')).stage + ' v' + JSON.parse(require('fs').readFileSync('version.json')).version)\"",
+    "deploy": "node scripts/deploy.js",
+    "prebuild": "npm run version:bump"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.55.0",
