@@ -4,6 +4,7 @@ import { useSession } from 'next-auth/react'
 import Navigation from '@/components/Navigation'
 import VersionBadge from '@/components/VersionBadge'
 import ChatRoom from '@/components/ChatRoom'
+import PoliticsAndWarPanel from '@/components/PoliticsAndWarPanel'
 import { useState } from 'react'
 import versionInfo from '../../version.json'
 
@@ -25,6 +26,7 @@ export default function Dashboard() {
   const panels = [
     { id: 'overview', name: '📊 Overview', icon: '📊' },
     { id: 'chat', name: '💬 Chat Room', icon: '💬' },
+    { id: 'politicswar', name: '🌍 Politics & War', icon: '🌍' },
     { id: 'games', name: '🎮 Games', icon: '🎮', disabled: true },
     { id: 'profile', name: '👤 Profile', icon: '👤', disabled: true },
     { id: 'settings', name: '⚙️ Settings', icon: '⚙️', disabled: true },
@@ -72,6 +74,12 @@ export default function Dashboard() {
                     💬 Join Chat Room
                   </button>
                   <button
+                    onClick={() => setActivePanel('politicswar')}
+                    className="w-full text-left px-3 py-2 text-sm bg-green-50 text-green-700 rounded hover:bg-green-100 transition-colors"
+                  >
+                    🌍 Politics & War API
+                  </button>
+                  <button
                     disabled
                     className="w-full text-left px-3 py-2 text-sm bg-gray-50 text-gray-400 rounded cursor-not-allowed"
                   >
@@ -108,6 +116,13 @@ export default function Dashboard() {
               <p className="text-gray-600">Connect with other users in real-time</p>
             </div>
             <ChatRoom />
+          </div>
+        )
+
+      case 'politicswar':
+        return (
+          <div className="bg-gray-900 rounded-lg p-6 min-h-screen">
+            <PoliticsAndWarPanel />
           </div>
         )
 
