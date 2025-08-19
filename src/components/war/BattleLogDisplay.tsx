@@ -61,10 +61,10 @@ const BattleLogDisplay = forwardRef<HTMLDivElement, BattleLogDisplayProps>(
     }
 
     return (
-      <div className="bg-white rounded-lg shadow-lg">
-        <div className="p-4 border-b border-gray-200">
-          <h3 className="text-lg font-bold text-gray-900">Battle Log</h3>
-          <p className="text-sm text-gray-600">{battleLog.length} entries</p>
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg">
+        <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white">Battle Log</h3>
+          <p className="text-sm text-gray-600 dark:text-gray-400">{battleLog.length} entries</p>
         </div>
         
         <div 
@@ -72,7 +72,7 @@ const BattleLogDisplay = forwardRef<HTMLDivElement, BattleLogDisplayProps>(
           className="h-96 overflow-y-auto p-4 space-y-4"
         >
           {battleLog.length === 0 ? (
-            <div className="text-center text-gray-500 py-8">
+            <div className="text-center text-gray-500 dark:text-gray-400 py-8">
               No battle actions yet. Start the war to see battle logs here.
             </div>
           ) : (

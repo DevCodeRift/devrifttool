@@ -131,11 +131,11 @@ export default function BattleActions({ attacker, onExecuteAction }: BattleActio
           </span>
         </div>
       </div>
-      <p className="text-sm text-gray-600">{description}</p>
+      <p className="text-sm text-gray-600 dark:text-gray-400">{description}</p>
       
       {/* Show unit availability */}
       {action !== 'fortify' && action !== 'spy_operation' && (
-        <div className="mt-2 text-xs text-gray-500">
+        <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
           Available: {getMaxUnits(action).toLocaleString()} units
         </div>
       )}
@@ -143,8 +143,8 @@ export default function BattleActions({ attacker, onExecuteAction }: BattleActio
   )
 
   return (
-    <div className="bg-white rounded-lg shadow-lg p-6">
-      <h3 className="text-xl font-bold text-gray-900 mb-4">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+      <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
         Battle Actions - {attacker.name}
       </h3>
       

@@ -207,13 +207,13 @@ export default function NationSetup({ onWarStart }: NationSetupProps) {
                 </div>
 
                 <div className="mt-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Military Configuration
                   </label>
                   <select
                     value={nation1Military}
                     onChange={(e) => setNation1Military(e.target.value as 'current' | 'max')}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                   >
                     <option value="current">Use Current Military</option>
                     <option value="max">Use Maximum Military (Full Barracks/Factories/etc.)</option>
@@ -289,13 +289,13 @@ export default function NationSetup({ onWarStart }: NationSetupProps) {
                 </div>
 
                 <div className="mt-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Military Configuration
                   </label>
                   <select
                     value={nation2Military}
                     onChange={(e) => setNation2Military(e.target.value as 'current' | 'max')}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                   >
                     <option value="current">Use Current Military</option>
                     <option value="max">Use Maximum Military (Full Barracks/Factories/etc.)</option>

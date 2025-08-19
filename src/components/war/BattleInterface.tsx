@@ -346,14 +346,14 @@ export default function BattleInterface({
   return (
     <div className="space-y-6">
       {/* War Status Header */}
-      <div className="bg-white rounded-lg shadow-lg p-6">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold text-gray-900">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
             War: {nation1.name} vs {nation2.name}
           </h2>
           <div className="text-right">
-            <p className="text-lg font-semibold">Turn {currentTurn} / {maxTurns}</p>
-            <p className="text-sm text-gray-600">
+            <p className="text-lg font-semibold text-gray-900 dark:text-white">Turn {currentTurn} / {maxTurns}</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
               {Math.floor((currentTurn - 1) / 12)} days, {((currentTurn - 1) % 12) * 2} hours
             </p>
           </div>
