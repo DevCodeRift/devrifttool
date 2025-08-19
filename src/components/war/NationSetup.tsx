@@ -8,8 +8,8 @@ interface NationSetupProps {
 }
 
 export default function NationSetup({ onWarStart }: NationSetupProps) {
-  const [nation1Name, setNation1Name] = useState('')
-  const [nation2Name, setNation2Name] = useState('')
+  const [nation1Id, setNation1Id] = useState('')
+  const [nation2Id, setNation2Id] = useState('')
   const [nation1Data, setNation1Data] = useState<PWNation | null>(null)
   const [nation2Data, setNation2Data] = useState<PWNation | null>(null)
   const [nation1Military, setNation1Military] = useState<'current' | 'max'>('max')
@@ -17,14 +17,14 @@ export default function NationSetup({ onWarStart }: NationSetupProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  const searchNation = async (nationName: string, nationNumber: 1 | 2) => {
-    if (!nationName.trim()) return
+  const searchNation = async (nationId: string, nationNumber: 1 | 2) => {
+    if (!nationId.trim()) return
 
     setLoading(true)
     setError('')
 
     try {
-      const response = await fetch(`/api/pw/nation?name=${encodeURIComponent(nationName.trim())}`)
+      const response = await fetch(`/api/pw/nation?nationId=${encodeURIComponent(nationId.trim())}`)
       
       if (!response.ok) {
         throw new Error('Nation not found')
@@ -38,7 +38,7 @@ export default function NationSetup({ onWarStart }: NationSetupProps) {
         setNation2Data(data)
       }
     } catch {
-      setError(`Failed to find nation: ${nationName}`)
+      setError(`Failed to find nation with ID: ${nationId}`)
     } finally {
       setLoading(false)
     }
@@ -139,6 +139,22 @@ export default function NationSetup({ onWarStart }: NationSetupProps) {
 
   return (
     <div className="space-y-8">
+      {error && (
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+          <p className="text-red-700 dark:text-red-400">{error}</p>
+        </div>
+      )}
+      
+      <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+        <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-200 mb-2">
+          Politics and War Integration
+        </h3>
+        <p className="text-blue-700 dark:text-blue-300 text-sm">
+          This simulator fetches real nation data from the Politics and War API. 
+          Enter nation IDs to load actual military statistics for realistic war simulation.
+        </p>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Nation 1 Setup */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
@@ -147,19 +163,22 @@ export default function NationSetup({ onWarStart }: NationSetupProps) {
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Nation Name
+                Nation ID
               </label>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                Find nation IDs at politicsandwar.com - look in the URL when viewing a nation (e.g., /nation/id=12345)
+              </p>
               <div className="flex gap-2">
                 <input
                   type="text"
-                  value={nation1Name}
-                  onChange={(e) => setNation1Name(e.target.value)}
-                  placeholder="Enter nation name..."
+                  value={nation1Id}
+                  onChange={(e) => setNation1Id(e.target.value)}
+                  placeholder="Enter nation ID..."
                   className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900 placeholder-gray-500 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:placeholder-gray-400"
-                  onKeyPress={(e) => e.key === 'Enter' && searchNation(nation1Name, 1)}
+                  onKeyPress={(e) => e.key === 'Enter' && searchNation(nation1Id, 1)}
                 />
                 <button
-                  onClick={() => searchNation(nation1Name, 1)}
+                  onClick={() => searchNation(nation1Id, 1)}
                   disabled={loading}
                   className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
                 >
@@ -226,19 +245,22 @@ export default function NationSetup({ onWarStart }: NationSetupProps) {
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Nation Name
+                Nation ID
               </label>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                Find nation IDs at politicsandwar.com - look in the URL when viewing a nation (e.g., /nation/id=12345)
+              </p>
               <div className="flex gap-2">
                 <input
                   type="text"
-                  value={nation2Name}
-                  onChange={(e) => setNation2Name(e.target.value)}
-                  placeholder="Enter nation name..."
+                  value={nation2Id}
+                  onChange={(e) => setNation2Id(e.target.value)}
+                  placeholder="Enter nation ID..."
                   className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900 placeholder-gray-500 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:placeholder-gray-400"
-                  onKeyPress={(e) => e.key === 'Enter' && searchNation(nation2Name, 2)}
+                  onKeyPress={(e) => e.key === 'Enter' && searchNation(nation2Id, 2)}
                 />
                 <button
-                  onClick={() => searchNation(nation2Name, 2)}
+                  onClick={() => searchNation(nation2Id, 2)}
                   disabled={loading}
                   className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
                 >
@@ -300,12 +322,6 @@ export default function NationSetup({ onWarStart }: NationSetupProps) {
       </div>
 
       {/* Error Display */}
-      {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <p className="text-red-700">{error}</p>
-        </div>
-      )}
-
       {/* Start War Button */}
       {nation1Data && nation2Data && (
         <div className="text-center">
