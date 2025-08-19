@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import NationSetup from './war/NationSetup'
 import BattleInterface from './war/BattleInterface'
+import MultiplayerBattleInterface from './war/MultiplayerBattleInterface'
 import MultiplayerRoom from './war/MultiplayerRoom'
 import LobbyBrowser from './war/LobbyBrowser'
 import { Nation, BattleLog, WarState, BattleSettings } from '@/types/war'
@@ -20,6 +21,10 @@ export default function WarSimulation() {
     maxTurns: 60,
     isPrivate: false
   })
+  
+  // Multiplayer-specific state
+  const [multiplayerRoomId, setMultiplayerRoomId] = useState<string>('')
+  const [playerId, setPlayerId] = useState<string>('')
 
   const resetSimulation = () => {
     setWarState('setup')
@@ -56,31 +61,40 @@ export default function WarSimulation() {
     setWarState('setup')
   }
 
-  const startWar = (n1: Nation, n2: Nation, settings: BattleSettings) => {
+  const startWar = (n1: Nation, n2: Nation, settings: BattleSettings, roomId?: string, userId?: string) => {
     setNation1(n1)
     setNation2(n2)
     setBattleSettings(settings)
-    setWarState('battle')
     
-    // Add initial war declaration to battle log
-    const initialLog: BattleLog = {
-      id: Date.now().toString(),
-      turn: 0,
-      attacker: n1.name,
-      defender: n2.name,
-      action: 'war_declaration',
-      actionType: 'system',
-      result: 'success',
-      message: `${n1.name} has declared war on ${n2.name}!${settings.gameMode === 'multiplayer' ? ' (Multiplayer Mode)' : ''}`,
-      timestamp: new Date(),
-      attackerCasualties: {},
-      defenderCasualties: {},
-      resistanceDamage: 0,
-      infrastructureDamage: 0,
-      loot: {}
+    // Set multiplayer-specific data if provided
+    if (roomId && userId) {
+      setMultiplayerRoomId(roomId)
+      setPlayerId(userId)
     }
     
-    setBattleLog([initialLog])
+    setWarState('battle')
+    
+    // Add initial war declaration to battle log (only for single-player)
+    if (settings.gameMode === 'singleplayer') {
+      const initialLog: BattleLog = {
+        id: Date.now().toString(),
+        turn: 0,
+        attacker: n1.name,
+        defender: n2.name,
+        action: 'war_declaration',
+        actionType: 'system',
+        result: 'success',
+        message: `${n1.name} has declared war on ${n2.name}!`,
+        timestamp: new Date(),
+        attackerCasualties: {},
+        defenderCasualties: {},
+        resistanceDamage: 0,
+        infrastructureDamage: 0,
+        loot: {}
+      }
+      
+      setBattleLog([initialLog])
+    }
   }
 
   return (
@@ -106,19 +120,27 @@ export default function WarSimulation() {
       
       {warState === 'battle' && nation1 && nation2 && (
         <>
-          <BattleInterface
-            nation1={nation1}
-            nation2={nation2}
-            battleLog={battleLog}
-            setBattleLog={setBattleLog}
-            currentTurn={currentTurn}
-            setCurrentTurn={setCurrentTurn}
-            maxTurns={maxTurns}
-            onReset={resetSimulation}
-            setNation1={setNation1}
-            setNation2={setNation2}
-            battleSettings={battleSettings}
-          />
+          {battleSettings.gameMode === 'multiplayer' ? (
+            <MultiplayerBattleInterface
+              roomId={multiplayerRoomId}
+              playerId={playerId}
+              onBackToRoom={backToSetup}
+            />
+          ) : (
+            <BattleInterface
+              nation1={nation1}
+              nation2={nation2}
+              battleLog={battleLog}
+              setBattleLog={setBattleLog}
+              currentTurn={currentTurn}
+              setCurrentTurn={setCurrentTurn}
+              maxTurns={maxTurns}
+              onReset={resetSimulation}
+              setNation1={setNation1}
+              setNation2={setNation2}
+              battleSettings={battleSettings}
+            />
+          )}
         </>
       )}
     </div>

@@ -6,7 +6,7 @@ import { realTimeRoomManager, Room, RoomPlayer } from '@/lib/realtime-room-manag
 
 interface MultiplayerRoomProps {
   battleSettings: BattleSettings
-  onStartBattle: (nation1: Nation, nation2: Nation, settings: BattleSettings) => void
+  onStartBattle: (nation1: Nation, nation2: Nation, settings: BattleSettings, roomId?: string, playerId?: string) => void
   onBackToSetup: () => void
 }
 
@@ -86,7 +86,7 @@ export default function MultiplayerRoom({
           const attackerNation = { ...attacker.nationData, isDefender: false }
           const defenderNation = { ...defender.nationData, isDefender: true }
           
-          onStartBattle(attackerNation, defenderNation, updatedRoom.settings)
+          onStartBattle(attackerNation, defenderNation, updatedRoom.settings, updatedRoom.id, playerId)
           return // Don't update room data since we're transitioning away
         }
       }

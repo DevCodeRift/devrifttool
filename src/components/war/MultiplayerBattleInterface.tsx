@@ -95,15 +95,20 @@ export default function MultiplayerBattleInterface({
   useEffect(() => {
     if (!roomId) return
 
+    console.log('Subscribing to room updates for roomId:', roomId)
+
     const roomSubscription = multiplayerBattleManager.subscribeToRoom(roomId, (updatedRoom) => {
+      console.log('Room updated:', updatedRoom)
       setRoom(updatedRoom)
     })
 
     const playersSubscription = multiplayerBattleManager.subscribeToPlayers(roomId, (updatedPlayers) => {
+      console.log('Players updated:', updatedPlayers)
       setPlayers(updatedPlayers)
     })
 
     const logsSubscription = multiplayerBattleManager.subscribeToBattleLogs(roomId, (logs) => {
+      console.log('Battle logs updated:', logs)
       setBattleLog(logs)
     })
 
