@@ -225,6 +225,7 @@ class MultiplayerBattleManager {
       }
 
       // Apply MAP consumption
+      console.log(`🎯 Consuming ${mapsRequired} MAPs from ${attacker.name}. Before: ${attacker.maps}, After: ${attacker.maps - mapsRequired}`)
       updatedAttacker.maps -= mapsRequired
 
       // Update space control if applicable
@@ -237,7 +238,20 @@ class MultiplayerBattleManager {
 
       // Update both players' nation data
       console.log('🔄 Updating player states in database...')
-      await Promise.all([
+      console.log(`📊 Attacker data being saved:`, {
+        name: updatedAttacker.name,
+        maps: updatedAttacker.maps,
+        resistance: updatedAttacker.resistance,
+        military: updatedAttacker.military
+      })
+      console.log(`📊 Defender data being saved:`, {
+        name: updatedDefender.name,
+        maps: updatedDefender.maps,
+        resistance: updatedDefender.resistance,
+        military: updatedDefender.military
+      })
+
+      const updateResults = await Promise.all([
         supabase
           .from('battle_room_players')
           .update({ nation_data: updatedAttacker })
@@ -251,6 +265,7 @@ class MultiplayerBattleManager {
       ])
 
       console.log('✅ Player states updated successfully')
+      console.log('📋 Update results:', updateResults.map(r => ({ error: r.error, status: r.status })))
 
       // Record the action
       await supabase
@@ -265,7 +280,8 @@ class MultiplayerBattleManager {
         })
 
       // Add battle log entry
-      await this.addBattleLog(roomId, room.current_turn, attacker.name, defender.name, {
+      console.log('📝 Creating battle log entry...')
+      const logEntry = {
         action: `${actionType.toUpperCase()}${actionData.target ? ` vs ${actionData.target.toUpperCase()}` : ''}`,
         actionType,
         result: 'success',
@@ -276,7 +292,11 @@ class MultiplayerBattleManager {
         resistanceDamage: result.resistanceDamage,
         infrastructureDamage: result.infrastructureDamage || 0,
         loot: result.loot || {}
-      })
+      }
+      console.log('📋 Log entry data:', logEntry)
+      
+      await this.addBattleLog(roomId, room.current_turn, attacker.name, defender.name, logEntry)
+      console.log('✅ Battle log entry created successfully')
 
       // Check for victory conditions
       const gameEnded = await this.checkVictoryConditions(roomId, updatedAttacker, updatedDefender, room.current_turn, room.max_turns)
@@ -379,7 +399,9 @@ class MultiplayerBattleManager {
       loot: { [key: string]: number }
     }
   ) {
-    await supabase
+    console.log(`📜 Inserting battle log for room ${roomId}, turn ${turnNumber}:`, logData)
+    
+    const insertResult = await supabase
       .from('battle_logs')
       .insert({
         room_id: roomId,
@@ -388,6 +410,14 @@ class MultiplayerBattleManager {
         defender_name: defenderName,
         ...logData
       })
+    
+    if (insertResult.error) {
+      console.error('❌ Failed to insert battle log:', insertResult.error)
+    } else {
+      console.log('✅ Battle log inserted successfully')
+    }
+    
+    return insertResult
   }
 
   /**

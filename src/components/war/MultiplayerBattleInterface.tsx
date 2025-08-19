@@ -181,6 +181,12 @@ export default function MultiplayerBattleInterface({
 
       const playersSubscription = multiplayerBattleManager.subscribeToPlayers(roomId, (updatedPlayers) => {
         console.log('Players updated via subscription:', updatedPlayers)
+        console.log('📊 Player MAPs after update:', updatedPlayers.map(p => ({
+          name: p.nation_data?.name,
+          maps: p.nation_data?.maps,
+          maxMaps: p.nation_data?.maxMaps,
+          resistance: p.nation_data?.resistance
+        })))
         setPlayers(updatedPlayers)
       })
 
