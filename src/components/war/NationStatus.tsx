@@ -55,10 +55,10 @@ export default function NationStatus({ nation1, nation2, activeNation }: NationS
       {/* MAPs */}
       <div className="mb-4">
         <div className="flex justify-between items-center mb-1">
-          <span className="text-sm font-medium text-gray-700">Military Action Points</span>
-          <span className="text-sm font-medium text-gray-900">{nation.maps}/{nation.maxMaps}</span>
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Military Action Points</span>
+          <span className="text-sm font-medium text-gray-900 dark:text-white">{nation.maps}/{nation.maxMaps}</span>
         </div>
-        <div className="w-full bg-gray-200 rounded-full h-2">
+        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
           <div
             className="h-2 rounded-full bg-blue-500"
             style={{ width: `${(nation.maps / nation.maxMaps) * 100}%` }}
@@ -68,18 +68,18 @@ export default function NationStatus({ nation1, nation2, activeNation }: NationS
 
       {/* Space Control */}
       <div className="mb-4">
-        <h4 className="text-sm font-medium text-gray-700 mb-2">Space Control</h4>
+        <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Space Control</h4>
         <div className="grid grid-cols-2 gap-2">
-          <div className={`text-xs px-2 py-1 rounded ${nation.spaceControl.groundControl ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}`}>
+          <div className={`text-xs px-2 py-1 rounded ${nation.spaceControl.groundControl ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400'}`}>
             Ground Control
           </div>
-          <div className={`text-xs px-2 py-1 rounded ${nation.spaceControl.airSuperiority ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-600'}`}>
+          <div className={`text-xs px-2 py-1 rounded ${nation.spaceControl.airSuperiority ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300' : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400'}`}>
             Air Superiority
           </div>
-          <div className={`text-xs px-2 py-1 rounded ${nation.spaceControl.blockade ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-600'}`}>
+          <div className={`text-xs px-2 py-1 rounded ${nation.spaceControl.blockade ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300' : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400'}`}>
             Blockade
           </div>
-          <div className={`text-xs px-2 py-1 rounded ${nation.spaceControl.fortified ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-600'}`}>
+          <div className={`text-xs px-2 py-1 rounded ${nation.spaceControl.fortified ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300' : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400'}`}>
             Fortified
           </div>
         </div>
@@ -87,8 +87,8 @@ export default function NationStatus({ nation1, nation2, activeNation }: NationS
 
       {/* Military Units */}
       <div className="mb-4">
-        <h4 className="text-sm font-medium text-gray-700 mb-2">Military</h4>
-        <div className="grid grid-cols-2 gap-2 text-sm">
+        <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Military</h4>
+        <div className="grid grid-cols-2 gap-2 text-sm text-gray-900 dark:text-gray-300">
           <div className="flex justify-between">
             <span>Soldiers:</span>
             <span className="font-medium">{formatNumber(nation.military.soldiers)}</span>
@@ -122,8 +122,8 @@ export default function NationStatus({ nation1, nation2, activeNation }: NationS
 
       {/* Resources */}
       <div className="mb-4">
-        <h4 className="text-sm font-medium text-gray-700 mb-2">Resources</h4>
-        <div className="grid grid-cols-2 gap-2 text-xs">
+        <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Resources</h4>
+        <div className="grid grid-cols-2 gap-2 text-xs text-gray-900 dark:text-gray-300">
           <div className="flex justify-between">
             <span>Money:</span>
             <span className="font-medium">${formatNumber(Math.floor(nation.resources.money))}</span>
@@ -153,8 +153,8 @@ export default function NationStatus({ nation1, nation2, activeNation }: NationS
 
       {/* War Settings */}
       <div>
-        <h4 className="text-sm font-medium text-gray-700 mb-2">War Settings</h4>
-        <div className="text-xs space-y-1">
+        <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">War Settings</h4>
+        <div className="text-xs space-y-1 text-gray-900 dark:text-gray-300">
           <div className="flex justify-between">
             <span>War Policy:</span>
             <span className="font-medium capitalize">{nation.warPolicy}</span>
