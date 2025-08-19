@@ -25,6 +25,14 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Nation not found' }, { status: 404 });
     }
 
+    // Debug logging
+    console.log('Nation data received:', {
+      id: nation.id,
+      name: nation.nation_name,
+      cities: nation.cities ? nation.cities.length : 'undefined',
+      citiesData: nation.cities ? 'array' : typeof nation.cities
+    });
+
     // Transform to match war simulator expected format
     const formattedNation = {
       id: parseInt(nation.id),

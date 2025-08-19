@@ -276,6 +276,12 @@ class PoliticsAndWarAPI {
             aluminum
             food
             credits
+            cities {
+              id
+              name
+              infrastructure
+              land
+            }
           }
         }
       }
