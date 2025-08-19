@@ -1,12 +1,39 @@
 'use client'
 
 import { useSession } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
+import { useEffect } from 'react'
 import Navigation from '@/components/Navigation'
 import VersionBadge from '@/components/VersionBadge'
 import Link from 'next/link'
 
 export default function Home() {
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
+  const router = useRouter()
+
+  // Redirect authenticated users to dashboard
+  useEffect(() => {
+    if (status === 'authenticated' && session) {
+      router.push('/dashboard')
+    }
+  }, [session, status, router])
+
+  // Show loading while checking authentication
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Only show landing page for unauthenticated users
+  if (session) {
+    return null // Will redirect to dashboard
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -22,53 +49,54 @@ export default function Home() {
               A simple multiplayer web application with real-time features.
             </p>
             
-            {session ? (
-              <div className="mt-8">
-                <div className="bg-white overflow-hidden shadow rounded-lg">
-                  <div className="px-4 py-5 sm:p-6">
-                    <h3 className="text-lg leading-6 font-medium text-gray-900">
-                      Welcome back, {session.user?.name}!
-                    </h3>
-                    <div className="mt-2 max-w-xl text-sm text-gray-500">
-                      <p>You are successfully signed in. Test the multiplayer features!</p>
-                    </div>
-                    <div className="mt-5 space-x-3">
-                      <Link
-                        href="/chat"
-                        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                      >
-                        🚀 Test Chat Room
-                      </Link>
-                      <button
-                        type="button"
-                        className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                      >
-                        More Features Soon...
-                      </button>
-                    </div>
+            {/* Call to Action for Unauthenticated Users */}
+            <div className="mt-8">
+              <div className="bg-white overflow-hidden shadow rounded-lg">
+                <div className="px-4 py-5 sm:p-6">
+                  <h3 className="text-lg leading-6 font-medium text-gray-900">
+                    Get Started Today
+                  </h3>
+                  <div className="mt-2 max-w-xl text-sm text-gray-500">
+                    <p>Join our Alpha testing program and experience real-time multiplayer features!</p>
+                  </div>
+                  <div className="mt-5 space-x-3">
+                    <Link
+                      href="/auth/signup"
+                      className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                    >
+                      🚀 Start Alpha Testing
+                    </Link>
+                    <Link
+                      href="/auth/signin"
+                      className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                    >
+                      Sign In
+                    </Link>
                   </div>
                 </div>
               </div>
-            ) : (
-              <div className="mt-5 max-w-md mx-auto sm:flex sm:justify-center md:mt-8">
-                <div className="rounded-md shadow">
-                  <Link
-                    href="/auth/signup"
-                    className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 md:py-4 md:text-lg md:px-10"
-                  >
-                    Get Started
-                  </Link>
+            </div>
+
+            {/* Features Preview */}
+            <div className="mt-12">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div className="bg-white p-6 rounded-lg shadow">
+                  <div className="text-3xl mb-4">💬</div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">Real-time Chat</h3>
+                  <p className="text-gray-600 text-sm">Connect with other users instantly with our live chat system.</p>
                 </div>
-                <div className="mt-3 rounded-md shadow sm:mt-0 sm:ml-3">
-                  <Link
-                    href="/auth/signin"
-                    className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-indigo-600 bg-white hover:bg-gray-50 md:py-4 md:text-lg md:px-10"
-                  >
-                    Sign In
-                  </Link>
+                <div className="bg-white p-6 rounded-lg shadow">
+                  <div className="text-3xl mb-4">🎮</div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">Multiplayer Games</h3>
+                  <p className="text-gray-600 text-sm">Play games with friends in real-time (coming soon).</p>
+                </div>
+                <div className="bg-white p-6 rounded-lg shadow">
+                  <div className="text-3xl mb-4">🚀</div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">Alpha Testing</h3>
+                  <p className="text-gray-600 text-sm">Be part of our early testing program and shape the future.</p>
                 </div>
               </div>
-            )}
+            </div>
           </div>
         </div>
       </main>

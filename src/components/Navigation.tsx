@@ -38,10 +38,16 @@ export default function Navigation() {
             {session ? (
               <>
                 <Link
+                  href="/dashboard"
+                  className="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  � Dashboard
+                </Link>
+                <Link
                   href="/chat"
                   className="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium"
                 >
-                  🚀 Chat Room
+                  💬 Chat
                 </Link>
                 <span className="text-gray-700">Welcome, {session.user?.name}</span>
                 <button

@@ -49,7 +49,7 @@ export default function SignUpForm() {
         setError(data.error || 'Registration failed')
       } else {
         // Registration successful, redirect to sign in
-        router.push('/auth/signin?message=Registration successful, please sign in')
+        router.push('/auth/signin?message=Registration successful! Please sign in to access your dashboard.')
       }
     } catch (err) {
       console.error('Registration error:', err)

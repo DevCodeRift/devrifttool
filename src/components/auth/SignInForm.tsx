@@ -1,16 +1,25 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { signIn } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 
 export default function SignInForm() {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
+  const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
   const router = useRouter()
+  const searchParams = useSearchParams()
+
+  useEffect(() => {
+    const urlMessage = searchParams.get('message')
+    if (urlMessage) {
+      setMessage(urlMessage)
+    }
+  }, [searchParams])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -27,7 +36,7 @@ export default function SignInForm() {
       if (result?.error) {
         setError('Invalid username or password')
       } else {
-        router.push('/')
+        router.push('/dashboard')
         router.refresh()
       }
     } catch (err) {
@@ -80,8 +89,12 @@ export default function SignInForm() {
             </div>
           </div>
 
+          {message && (
+            <div className="text-green-600 text-sm text-center bg-green-50 p-3 rounded-md">{message}</div>
+          )}
+
           {error && (
-            <div className="text-red-600 text-sm text-center">{error}</div>
+            <div className="text-red-600 text-sm text-center bg-red-50 p-3 rounded-md">{error}</div>
           )}
 
           <div>
