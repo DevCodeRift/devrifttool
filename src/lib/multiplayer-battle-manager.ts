@@ -76,11 +76,6 @@ class MultiplayerBattleManager {
         return { success: false, error: 'Room not found' }
       }
 
-      // Check if it's the player's turn
-      if (room.active_player_id !== playerId) {
-        return { success: false, error: 'Not your turn' }
-      }
-
       // Check if room is in progress
       if (room.status !== 'in_progress') {
         return { success: false, error: 'Battle not in progress' }

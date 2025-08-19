@@ -56,11 +56,8 @@ export default function MultiplayerBattleInterface({
     const timer = setInterval(() => {
       setNextMapTime(prev => {
         if (prev <= 1) {
-          // Time for next MAP generation! 
-          setTotalTurns(turns => turns + 1)
-          
-          // Add simple log entry for MAP generation - just increment the turn counter
-          // Real battle logs will be added when players take actions
+          // Time for next MAP generation! Call the server to advance the turn
+          advanceTurn()
           
           return room.settings?.turnDuration || 30 // Reset based on room settings
         }
@@ -71,6 +68,33 @@ export default function MultiplayerBattleInterface({
     return () => clearInterval(timer)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [room?.status, room?.settings?.turnDuration])
+
+  // Function to advance the turn server-side
+  const advanceTurn = async () => {
+    if (!room) return
+    
+    try {
+      const response = await fetch('/api/battle/advance-turn', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          roomId: room.id
+        })
+      })
+
+      if (response.ok) {
+        const result = await response.json()
+        console.log('Turn advanced:', result)
+        // The room update will come through the subscription
+      } else {
+        console.error('Failed to advance turn:', response.status)
+      }
+    } catch (error) {
+      console.error('Error advancing turn:', error)
+    }
+  }
 
   // Reset timer when room changes or starts
   useEffect(() => {
