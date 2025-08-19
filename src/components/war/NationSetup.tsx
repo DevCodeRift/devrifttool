@@ -141,12 +141,12 @@ export default function NationSetup({ onWarStart }: NationSetupProps) {
     <div className="space-y-8">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Nation 1 Setup */}
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Nation 1 (Attacker)</h2>
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Nation 1 (Attacker)</h2>
           
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Nation Name
               </label>
               <div className="flex gap-2">
@@ -155,7 +155,7 @@ export default function NationSetup({ onWarStart }: NationSetupProps) {
                   value={nation1Name}
                   onChange={(e) => setNation1Name(e.target.value)}
                   placeholder="Enter nation name..."
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900 placeholder-gray-500 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:placeholder-gray-400"
                   onKeyPress={(e) => e.key === 'Enter' && searchNation(nation1Name, 1)}
                 />
                 <button
@@ -169,15 +169,15 @@ export default function NationSetup({ onWarStart }: NationSetupProps) {
             </div>
 
             {nation1Data && (
-              <div className="bg-gray-50 rounded-lg p-4">
-                <h3 className="font-semibold text-lg">{nation1Data.nation_name}</h3>
-                <p className="text-gray-600">Leader: {nation1Data.leader_name}</p>
-                <p className="text-gray-600">Cities: {nation1Data.num_cities}</p>
-                <p className="text-gray-600">Score: {nation1Data.score.toLocaleString()}</p>
+              <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                <h3 className="font-semibold text-lg text-gray-900 dark:text-white">{nation1Data.nation_name}</h3>
+                <p className="text-gray-600 dark:text-gray-400">Leader: {nation1Data.leader_name}</p>
+                <p className="text-gray-600 dark:text-gray-400">Cities: {nation1Data.num_cities}</p>
+                <p className="text-gray-600 dark:text-gray-400">Score: {nation1Data.score.toLocaleString()}</p>
                 
                 <div className="mt-4">
-                  <p className="font-medium text-gray-700 mb-2">Current Military:</p>
-                  <div className="grid grid-cols-2 gap-2 text-sm">
+                  <p className="font-medium text-gray-700 dark:text-gray-300 mb-2">Current Military:</p>
+                  <div className="grid grid-cols-2 gap-2 text-sm text-gray-900 dark:text-gray-300">
                     <div>Soldiers: {nation1Data.soldiers.toLocaleString()}</div>
                     <div>Tanks: {nation1Data.tanks.toLocaleString()}</div>
                     <div>Aircraft: {nation1Data.aircraft.toLocaleString()}</div>
@@ -202,9 +202,9 @@ export default function NationSetup({ onWarStart }: NationSetupProps) {
                 </div>
 
                 {nation1Military === 'max' && (
-                  <div className="mt-2 bg-blue-50 p-3 rounded-md">
-                    <p className="text-sm text-blue-700 font-medium">Maximum Military Capacity:</p>
-                    <div className="grid grid-cols-2 gap-2 text-xs text-blue-600 mt-1">
+                  <div className="mt-2 bg-blue-50 dark:bg-blue-900/30 p-3 rounded-md">
+                    <p className="text-sm text-blue-700 dark:text-blue-400 font-medium">Maximum Military Capacity:</p>
+                    <div className="grid grid-cols-2 gap-2 text-xs text-blue-600 dark:text-blue-300 mt-1">
                       <div>Soldiers: {(nation1Data.num_cities * 15000).toLocaleString()}</div>
                       <div>Tanks: {(nation1Data.num_cities * 1250).toLocaleString()}</div>
                       <div>Aircraft: {(nation1Data.num_cities * 75).toLocaleString()}</div>
@@ -220,12 +220,12 @@ export default function NationSetup({ onWarStart }: NationSetupProps) {
         </div>
 
         {/* Nation 2 Setup */}
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Nation 2 (Defender)</h2>
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Nation 2 (Defender)</h2>
           
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Nation Name
               </label>
               <div className="flex gap-2">
@@ -234,7 +234,7 @@ export default function NationSetup({ onWarStart }: NationSetupProps) {
                   value={nation2Name}
                   onChange={(e) => setNation2Name(e.target.value)}
                   placeholder="Enter nation name..."
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900 placeholder-gray-500 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:placeholder-gray-400"
                   onKeyPress={(e) => e.key === 'Enter' && searchNation(nation2Name, 2)}
                 />
                 <button
@@ -248,15 +248,15 @@ export default function NationSetup({ onWarStart }: NationSetupProps) {
             </div>
 
             {nation2Data && (
-              <div className="bg-gray-50 rounded-lg p-4">
-                <h3 className="font-semibold text-lg">{nation2Data.nation_name}</h3>
-                <p className="text-gray-600">Leader: {nation2Data.leader_name}</p>
-                <p className="text-gray-600">Cities: {nation2Data.num_cities}</p>
-                <p className="text-gray-600">Score: {nation2Data.score.toLocaleString()}</p>
+              <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                <h3 className="font-semibold text-lg text-gray-900 dark:text-white">{nation2Data.nation_name}</h3>
+                <p className="text-gray-600 dark:text-gray-400">Leader: {nation2Data.leader_name}</p>
+                <p className="text-gray-600 dark:text-gray-400">Cities: {nation2Data.num_cities}</p>
+                <p className="text-gray-600 dark:text-gray-400">Score: {nation2Data.score.toLocaleString()}</p>
                 
                 <div className="mt-4">
-                  <p className="font-medium text-gray-700 mb-2">Current Military:</p>
-                  <div className="grid grid-cols-2 gap-2 text-sm">
+                  <p className="font-medium text-gray-700 dark:text-gray-300 mb-2">Current Military:</p>
+                  <div className="grid grid-cols-2 gap-2 text-sm text-gray-900 dark:text-gray-300">
                     <div>Soldiers: {nation2Data.soldiers.toLocaleString()}</div>
                     <div>Tanks: {nation2Data.tanks.toLocaleString()}</div>
                     <div>Aircraft: {nation2Data.aircraft.toLocaleString()}</div>
@@ -281,9 +281,9 @@ export default function NationSetup({ onWarStart }: NationSetupProps) {
                 </div>
 
                 {nation2Military === 'max' && (
-                  <div className="mt-2 bg-blue-50 p-3 rounded-md">
-                    <p className="text-sm text-blue-700 font-medium">Maximum Military Capacity:</p>
-                    <div className="grid grid-cols-2 gap-2 text-xs text-blue-600 mt-1">
+                  <div className="mt-2 bg-blue-50 dark:bg-blue-900/30 p-3 rounded-md">
+                    <p className="text-sm text-blue-700 dark:text-blue-400 font-medium">Maximum Military Capacity:</p>
+                    <div className="grid grid-cols-2 gap-2 text-xs text-blue-600 dark:text-blue-300 mt-1">
                       <div>Soldiers: {(nation2Data.num_cities * 15000).toLocaleString()}</div>
                       <div>Tanks: {(nation2Data.num_cities * 1250).toLocaleString()}</div>
                       <div>Aircraft: {(nation2Data.num_cities * 75).toLocaleString()}</div>
@@ -319,32 +319,32 @@ export default function NationSetup({ onWarStart }: NationSetupProps) {
       )}
 
       {/* Military Building Information */}
-      <div className="bg-white rounded-lg shadow-lg p-6">
-        <h3 className="text-lg font-bold text-gray-900 mb-4">Military Building Information</h3>
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Military Building Information</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <h4 className="font-semibold text-gray-800">Barracks</h4>
-            <p className="text-sm text-gray-600 mt-1">Cost: $3,000</p>
-            <p className="text-sm text-gray-600">Capacity: 3,000 soldiers</p>
-            <p className="text-sm text-gray-600">Max per city: 5</p>
+          <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+            <h4 className="font-semibold text-gray-800 dark:text-gray-200">Barracks</h4>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Cost: $3,000</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Capacity: 3,000 soldiers</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Max per city: 5</p>
           </div>
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <h4 className="font-semibold text-gray-800">Factories</h4>
-            <p className="text-sm text-gray-600 mt-1">Cost: $15,000 + 5 steel</p>
-            <p className="text-sm text-gray-600">Capacity: 250 tanks</p>
-            <p className="text-sm text-gray-600">Max per city: 5</p>
+          <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+            <h4 className="font-semibold text-gray-800 dark:text-gray-200">Factories</h4>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Cost: $15,000 + 5 steel</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Capacity: 250 tanks</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Max per city: 5</p>
           </div>
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <h4 className="font-semibold text-gray-800">Hangars</h4>
-            <p className="text-sm text-gray-600 mt-1">Cost: $100,000 + 10 aluminum</p>
-            <p className="text-sm text-gray-600">Capacity: 15 aircraft</p>
-            <p className="text-sm text-gray-600">Max per city: 5</p>
+          <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+            <h4 className="font-semibold text-gray-800 dark:text-gray-200">Hangars</h4>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Cost: $100,000 + 10 aluminum</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Capacity: 15 aircraft</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Max per city: 5</p>
           </div>
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <h4 className="font-semibold text-gray-800">Drydocks</h4>
-            <p className="text-sm text-gray-600 mt-1">Cost: $250,000 + 20 steel</p>
-            <p className="text-sm text-gray-600">Capacity: 5 ships</p>
-            <p className="text-sm text-gray-600">Max per city: 3</p>
+          <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+            <h4 className="font-semibold text-gray-800 dark:text-gray-200">Drydocks</h4>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Cost: $250,000 + 20 steel</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Capacity: 5 ships</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Max per city: 3</p>
           </div>
         </div>
       </div>
