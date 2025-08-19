@@ -262,7 +262,7 @@ export default function MultiplayerBattleInterface({
   const refreshData = async () => {
     console.log('🔄 Manually refreshing battle data...')
     try {
-      const response = await fetch(`/api/war/rooms/${roomId}`)
+      const response = await fetch(`/api/war/rooms?roomId=${roomId}`)
       if (response.ok) {
         const roomData = await response.json()
         console.log('📊 Latest room data from server:', roomData)
