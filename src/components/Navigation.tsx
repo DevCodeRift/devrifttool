@@ -41,13 +41,19 @@ export default function Navigation() {
                   href="/dashboard"
                   className="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium"
                 >
-                  � Dashboard
+                  🏠 Dashboard
                 </Link>
                 <Link
                   href="/chat"
                   className="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium"
                 >
                   💬 Chat
+                </Link>
+                <Link
+                  href="/war-simulator"
+                  className="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  ⚔️ War Simulator
                 </Link>
                 <span className="text-gray-700">Welcome, {session.user?.name}</span>
                 <button
