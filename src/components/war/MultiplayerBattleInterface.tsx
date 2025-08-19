@@ -22,12 +22,13 @@ export default function MultiplayerBattleInterface({
   const [players, setPlayers] = useState<BattleRoomPlayer[]>([])
   const [battleLog, setBattleLog] = useState<BattleLog[]>([])
   const [error, setError] = useState('')
+  const [nextMapTime, setNextMapTime] = useState(30) // Countdown to next MAP generation
+  const [totalTurns, setTotalTurns] = useState(0) // Track how many MAP cycles have occurred
   const battleLogRef = useRef<HTMLDivElement>(null)
 
   // Get current player and opponent
   const currentPlayer = players.find(p => p.player_id === playerId)
   const opponent = players.find(p => p.player_id !== playerId)
-  const isMyTurn = room?.active_player_id === playerId
   const isAttacker = currentPlayer?.side === 'attacker'
 
   // Auto-scroll battle log to bottom when new entries are added
@@ -36,6 +37,59 @@ export default function MultiplayerBattleInterface({
       battleLogRef.current.scrollTop = battleLogRef.current.scrollHeight
     }
   }, [battleLog])
+
+  // MAP generation countdown timer - both players get MAP simultaneously
+  useEffect(() => {
+    if (!room || room.status === 'completed') return
+
+    const timer = setInterval(() => {
+      setNextMapTime(prev => {
+        if (prev <= 1) {
+          // Time for next MAP generation! 
+          setTotalTurns(turns => turns + 1)
+          
+          // Add simple log entry for MAP generation - just increment the turn counter
+          // Real battle logs will be added when players take actions
+          
+          return room.settings?.turnDuration || 30 // Reset based on room settings
+        }
+        return prev - 1
+      })
+    }, 1000)
+
+    return () => clearInterval(timer)
+  }, [room?.status, room?.settings?.turnDuration, totalTurns])
+
+  // Reset timer when room changes or starts
+  useEffect(() => {
+    if (room?.status === 'in_progress') {
+      setNextMapTime(room.settings?.turnDuration || 30)
+      setTotalTurns(room.current_turn || 0)
+    }
+  }, [room?.status, room?.current_turn, room?.settings?.turnDuration])
+
+  const skipTurn = async () => {
+    try {
+      const response = await fetch('/api/battle/action', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          roomId,
+          playerId,
+          actionType: 'skip_turn',
+          actionData: {}
+        })
+      })
+
+      if (!response.ok) {
+        console.error('Failed to skip turn')
+      }
+    } catch (error) {
+      console.error('Error skipping turn:', error)
+    }
+  }
 
   // Subscribe to room updates
   useEffect(() => {
@@ -66,11 +120,6 @@ export default function MultiplayerBattleInterface({
     units?: number,
     options?: { soldiers?: number; tanks?: number; [key: string]: unknown }
   ) => {
-    if (!isMyTurn) {
-      setError("It's not your turn!")
-      return
-    }
-
     if (!currentPlayer?.nation_data) {
       setError('Nation data not available')
       return
@@ -127,7 +176,7 @@ export default function MultiplayerBattleInterface({
 
   const nation1 = isAttacker ? currentPlayer.nation_data! : opponent.nation_data!
   const nation2 = isAttacker ? opponent.nation_data! : currentPlayer.nation_data!
-  const activeNation = isMyTurn ? (isAttacker ? 1 : 2) : (isAttacker ? 2 : 1)
+  const activeNation = isAttacker ? 1 : 2 // Both players can act simultaneously now
   const warOver = room.status === 'completed'
 
   // Determine winner from battle log - check if game ended
@@ -152,15 +201,15 @@ export default function MultiplayerBattleInterface({
             </button>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-center">
             <div className="bg-gray-800 p-4 rounded-lg">
               <h3 className="text-lg font-semibold">Turn</h3>
               <p className="text-2xl text-blue-400">{room.current_turn} / {room.max_turns}</p>
             </div>
             <div className="bg-gray-800 p-4 rounded-lg">
-              <h3 className="text-lg font-semibold">Active Player</h3>
+              <h3 className="text-lg font-semibold">Game Status</h3>
               <p className="text-2xl text-green-400">
-                {isMyTurn ? 'Your Turn' : `${opponent.player_name}\\'s Turn`}
+                Turn {totalTurns} - Both players active
               </p>
             </div>
             <div className="bg-gray-800 p-4 rounded-lg">
@@ -168,6 +217,23 @@ export default function MultiplayerBattleInterface({
               <p className="text-2xl text-purple-400">
                 {isAttacker ? 'Attacker' : 'Defender'}
               </p>
+            </div>
+            <div className="bg-gray-800 p-4 rounded-lg">
+              <h3 className="text-lg font-semibold">Next MAP Generation</h3>
+              <p className={`text-2xl font-bold ${
+                nextMapTime <= 5 
+                  ? 'text-red-400 animate-pulse' 
+                  : nextMapTime <= 10 
+                  ? 'text-yellow-400' 
+                  : 'text-green-400'
+              }`}>
+                {nextMapTime}s
+              </p>
+              {nextMapTime <= 10 && (
+                <div className="mt-2 text-xs text-yellow-300">
+                  MAP generation soon!
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -200,7 +266,7 @@ export default function MultiplayerBattleInterface({
               activeNation={activeNation}
             />
             
-            {!warOver && isMyTurn && currentPlayer.nation_data && (
+            {!warOver && currentPlayer.nation_data && (
               <BattleActions
                 attacker={currentPlayer.nation_data}
                 defender={opponent.nation_data!}
@@ -208,10 +274,10 @@ export default function MultiplayerBattleInterface({
               />
             )}
 
-            {!warOver && !isMyTurn && (
+            {!warOver && !currentPlayer.nation_data && (
               <div className="bg-gray-800 p-6 rounded-lg text-center">
-                <h3 className="text-xl font-semibold mb-2">Waiting for {opponent.player_name}</h3>
-                <p className="text-gray-400">It&apos;s their turn to make a move</p>
+                <h3 className="text-xl font-semibold mb-2">Setting up your nation...</h3>
+                <p className="text-gray-400">Please complete nation setup to begin fighting</p>
               </div>
             )}
           </div>

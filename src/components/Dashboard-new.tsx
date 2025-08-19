@@ -3,7 +3,6 @@
 import { useSession } from 'next-auth/react'
 import Navigation from '@/components/Navigation'
 import VersionBadge from '@/components/VersionBadge'
-import ChatRoom from '@/components/ChatRoom'
 import PoliticsAndWarPanel from '@/components/PoliticsAndWarPanel'
 import { useState } from 'react'
 import versionInfo from '../../version.json'
@@ -155,13 +154,6 @@ export default function Dashboard() {
     </div>
   )
 
-  const renderChat = () => (
-    <div>
-      <h2 className="text-2xl font-bold text-green-400 mb-6 font-mono">Communication Hub</h2>
-      <ChatRoom />
-    </div>
-  )
-
   const renderPoliticsWar = () => (
     <div>
       <PoliticsAndWarPanel />
@@ -170,8 +162,6 @@ export default function Dashboard() {
 
   const renderContent = () => {
     switch (activeView) {
-      case 'chat':
-        return renderChat()
       case 'politicswar':
         return renderPoliticsWar()
       default:
@@ -196,16 +186,6 @@ export default function Dashboard() {
               }`}
             >
               Overview
-            </button>
-            <button
-              onClick={() => setActiveView('chat')}
-              className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                activeView === 'chat'
-                  ? 'border-green-400 text-green-400'
-                  : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-300'
-              }`}
-            >
-              Chat
             </button>
             <button
               onClick={() => setActiveView('politicswar')}
