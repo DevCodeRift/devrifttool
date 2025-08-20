@@ -38,7 +38,7 @@ export default function WarSimulatorV2() {
   const [formData, setFormData] = useState({
     warName: '',
     maxPlayers: 2,
-    turnDuration: 120,
+    turnDuration: 30,
     playerName: session?.user?.name || session?.user?.email || '',
     nationName: '',
     nationId: '',
@@ -47,6 +47,10 @@ export default function WarSimulatorV2() {
   const [nationData, setNationData] = useState<NationData | null>(null)
   const [validatingNation, setValidatingNation] = useState(false)
   const [militaryType, setMilitaryType] = useState<'current' | 'maximum'>('current')
+  
+  // Timer state
+  const [timeRemaining, setTimeRemaining] = useState<number>(0)
+  const [isTimerActive, setIsTimerActive] = useState(false)
 
   const loadWars = async () => {
     try {
@@ -132,6 +136,41 @@ export default function WarSimulatorV2() {
     return () => clearInterval(interval)
   }, [])
 
+  // Timer management for active wars
+  useEffect(() => {
+    if (!currentWar || currentWar.status !== 'active') {
+      setTimeRemaining(0)
+      setIsTimerActive(false)
+      return
+    }
+
+    setIsTimerActive(true)
+    const updateTimer = () => {
+      const remaining = calculateTimeRemaining()
+      setTimeRemaining(remaining)
+      
+      // If timer reached 0, call auto-advance
+      if (remaining <= 0) {
+        callAutoAdvance()
+      }
+    }
+
+    // Update immediately and then every second
+    updateTimer()
+    const timerInterval = setInterval(updateTimer, 1000)
+
+    return () => clearInterval(timerInterval)
+  }, [currentWar?.lastTurnAt, currentWar?.status, currentWar?.turnDuration])
+
+  // Auto-advance polling every 5 seconds for all active wars
+  useEffect(() => {
+    const autoAdvanceInterval = setInterval(() => {
+      callAutoAdvance()
+    }, 5000)
+
+    return () => clearInterval(autoAdvanceInterval)
+  }, [])
+
   const loadWar = async (warId: string) => {
     try {
       const response = await fetch(`/api/wars-v2?warId=${warId}`, {
@@ -206,11 +245,50 @@ export default function WarSimulatorV2() {
     }
   }
 
+  // Timer functions
+  const calculateTimeRemaining = (): number => {
+    if (!currentWar?.lastTurnAt || !currentWar?.turnDuration) return 0
+    
+    const now = new Date().getTime()
+    const lastTurn = new Date(currentWar.lastTurnAt).getTime()
+    const turnDurationMs = currentWar.turnDuration * 1000
+    const elapsed = now - lastTurn
+    const remaining = Math.max(0, turnDurationMs - elapsed)
+    
+    return Math.ceil(remaining / 1000) // Return seconds remaining
+  }
+
+  const formatTime = (seconds: number): string => {
+    if (seconds <= 0) return '0:00'
+    const mins = Math.floor(seconds / 60)
+    const secs = seconds % 60
+    return `${mins}:${secs.toString().padStart(2, '0')}`
+  }
+
+  const callAutoAdvance = async () => {
+    try {
+      const response = await fetch('/api/wars-v2/auto-advance', {
+        method: 'POST'
+      })
+      if (response.ok) {
+        const result = await response.json()
+        if (result.advanced > 0) {
+          console.log('Auto-advanced wars:', result.results)
+          if (currentWar) {
+            loadWar(currentWar.id) // Refresh current war
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error calling auto-advance:', error)
+    }
+  }
+
   const resetForm = () => {
     setFormData({
       warName: '',
       maxPlayers: 2,
-      turnDuration: 120,
+      turnDuration: 30,
       playerName: '',
       nationName: '',
       nationId: '',
@@ -496,6 +574,20 @@ export default function WarSimulatorV2() {
                           {[2,3,4,5,6,7,8,9,10].map(n => (
                             <option key={n} value={n}>{n} Players</option>
                           ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-300 mb-2">⏱️ Turn Duration</label>
+                        <select
+                          value={formData.turnDuration}
+                          onChange={(e) => setFormData(prev => ({ ...prev, turnDuration: parseInt(e.target.value) }))}
+                          className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white 
+                                   focus:border-blue-400 focus:outline-none transition-colors"
+                        >
+                          <option value={30}>30 Seconds</option>
+                          <option value={60}>1 Minute</option>
+                          <option value={120}>2 Minutes</option>
+                          <option value={300}>5 Minutes</option>
                         </select>
                       </div>
                     </div>
@@ -945,6 +1037,15 @@ export default function WarSimulatorV2() {
                 <span className="bg-blue-500/20 text-blue-300 px-3 py-1 rounded-full border border-blue-500/30">
                   👥 {currentWar.participants.filter(p => !p.isSpectator).length} Nations
                 </span>
+                {currentWar.status === 'active' && (
+                  <span className={`px-3 py-1 rounded-full border font-mono ${
+                    timeRemaining <= 10 ? 'bg-red-500/20 text-red-300 border-red-500/30 animate-pulse' :
+                    timeRemaining <= 30 ? 'bg-orange-500/20 text-orange-300 border-orange-500/30' :
+                    'bg-cyan-500/20 text-cyan-300 border-cyan-500/30'
+                  }`}>
+                    ⏱️ {formatTime(timeRemaining)}
+                  </span>
+                )}
               </div>
             </div>
             <div className="flex gap-3">

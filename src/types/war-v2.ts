@@ -78,6 +78,7 @@ export interface War {
   participants: Nation[]
   startedAt?: Date
   endedAt?: Date
+  lastTurnAt?: Date
   createdAt: Date
   updatedAt: Date
 }

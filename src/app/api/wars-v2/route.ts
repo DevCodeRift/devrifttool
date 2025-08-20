@@ -84,6 +84,7 @@ export async function GET(request: NextRequest) {
         })) || [],
         startedAt: war.started_at ? new Date(war.started_at) : undefined,
         endedAt: war.ended_at ? new Date(war.ended_at) : undefined,
+        lastTurnAt: war.last_turn_at ? new Date(war.last_turn_at) : undefined,
         createdAt: new Date(war.created_at),
         updatedAt: new Date(war.updated_at)
       }
@@ -160,6 +161,9 @@ export async function GET(request: NextRequest) {
           isSpectator: p.is_spectator,
           isEliminated: p.is_eliminated
         })) || [],
+        startedAt: war.started_at ? new Date(war.started_at) : undefined,
+        endedAt: war.ended_at ? new Date(war.ended_at) : undefined,
+        lastTurnAt: war.last_turn_at ? new Date(war.last_turn_at) : undefined,
         createdAt: new Date(war.created_at),
         updatedAt: new Date(war.updated_at)
       })) || []
@@ -387,7 +391,8 @@ export async function POST(request: NextRequest) {
         .update({
           current_players: newPlayerCount,
           status: shouldStart ? 'active' : 'waiting',
-          started_at: shouldStart ? new Date().toISOString() : undefined
+          started_at: shouldStart ? new Date().toISOString() : undefined,
+          last_turn_at: shouldStart ? new Date().toISOString() : undefined
         })
         .eq('id', warId)
 

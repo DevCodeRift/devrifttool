@@ -18,6 +18,7 @@ CREATE TABLE wars (
     current_turn INTEGER NOT NULL DEFAULT 0,
     started_at TIMESTAMP,
     ended_at TIMESTAMP,
+    last_turn_at TIMESTAMP,
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW()
 );
