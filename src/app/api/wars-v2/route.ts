@@ -419,3 +419,72 @@ export async function POST(request: NextRequest) {
     }, { status: 500 })
   }
 }
+
+/**
+ * DELETE /api/wars-v2 - Clean up inactive wars
+ */
+export async function DELETE() {
+  try {
+    if (!supabase) {
+      return NextResponse.json({ error: 'Database connection not available' }, { status: 500 })
+    }
+
+    // Delete wars that are in 'waiting' status and haven't been updated in 5 minutes
+    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString()
+    
+    const { data: inactiveWars, error: findError } = await supabase
+      .from('wars')
+      .select('id, name')
+      .eq('status', 'waiting')
+      .lt('updated_at', fiveMinutesAgo)
+
+    if (findError) {
+      console.error('Error finding inactive wars:', findError)
+      return NextResponse.json({ error: 'Failed to find inactive wars' }, { status: 500 })
+    }
+
+    if (!inactiveWars || inactiveWars.length === 0) {
+      return NextResponse.json({ 
+        message: 'No inactive wars to clean up',
+        cleaned: 0
+      })
+    }
+
+    // Delete participants first (foreign key constraint)
+    const { error: deleteParticipantsError } = await supabase
+      .from('war_participants')
+      .delete()
+      .in('war_id', inactiveWars.map(w => w.id))
+
+    if (deleteParticipantsError) {
+      console.error('Error deleting participants:', deleteParticipantsError)
+      return NextResponse.json({ error: 'Failed to clean up participants' }, { status: 500 })
+    }
+
+    // Delete the wars
+    const { error: deleteWarsError } = await supabase
+      .from('wars')
+      .delete()
+      .in('id', inactiveWars.map(w => w.id))
+
+    if (deleteWarsError) {
+      console.error('Error deleting wars:', deleteWarsError)
+      return NextResponse.json({ error: 'Failed to clean up wars' }, { status: 500 })
+    }
+
+    console.log(`Cleaned up ${inactiveWars.length} inactive wars:`, inactiveWars.map(w => w.name))
+
+    return NextResponse.json({ 
+      message: `Cleaned up ${inactiveWars.length} inactive war(s)`,
+      cleaned: inactiveWars.length,
+      wars: inactiveWars.map(w => ({ id: w.id, name: w.name }))
+    })
+
+  } catch (error) {
+    console.error('Cleanup API error:', error)
+    return NextResponse.json({ 
+      error: 'Internal server error', 
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 })
+  }
+}

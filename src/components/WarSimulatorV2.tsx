@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useSession } from 'next-auth/react'
 import { War, Nation, ActionType, ExecuteActionRequest } from '@/types/war-v2'
 
 // Type for nation data from P&W API
@@ -16,6 +17,7 @@ interface NationData {
 }
 
 export default function WarSimulatorV2() {
+  const { data: session } = useSession()
   const [wars, setWars] = useState<War[]>([])
   const [currentWar, setCurrentWar] = useState<War | null>(null)
   const [playerId, setPlayerId] = useState<string>('')
@@ -37,7 +39,7 @@ export default function WarSimulatorV2() {
     warName: '',
     maxPlayers: 2,
     turnDuration: 120,
-    playerName: '',
+    playerName: session?.user?.name || session?.user?.email || '',
     nationName: '',
     nationId: '',
     isSpectator: false
@@ -78,6 +80,14 @@ export default function WarSimulatorV2() {
     return () => clearInterval(interval)
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Update player name when session changes
+  useEffect(() => {
+    setFormData(prev => ({
+      ...prev,
+      playerName: session?.user?.name || session?.user?.email || ''
+    }))
+  }, [session])
+
   // Poll current war for real-time updates
   useEffect(() => {
     if (!currentWar) return
@@ -96,6 +106,31 @@ export default function WarSimulatorV2() {
       setPlayerParticipant(participant || null)
     }
   }, [currentWar, playerId])
+
+  // Clean up inactive rooms every 2 minutes
+  useEffect(() => {
+    const cleanupInactiveRooms = async () => {
+      try {
+        const response = await fetch('/api/wars-v2', {
+          method: 'DELETE'
+        })
+        if (response.ok) {
+          const result = await response.json()
+          if (result.cleaned > 0) {
+            console.log(`Cleaned up ${result.cleaned} inactive rooms`)
+          }
+        }
+      } catch (error) {
+        console.error('Error cleaning up inactive rooms:', error)
+      }
+    }
+
+    // Clean up immediately on mount, then every 2 minutes
+    cleanupInactiveRooms()
+    const interval = setInterval(cleanupInactiveRooms, 2 * 60 * 1000)
+
+    return () => clearInterval(interval)
+  }, [])
 
   const loadWar = async (warId: string) => {
     try {
@@ -187,7 +222,7 @@ export default function WarSimulatorV2() {
   }
 
   const createWar = async () => {
-    if (!formData.warName || !formData.playerName || !formData.nationName) {
+    if (!formData.warName || !formData.playerName || !formData.nationName || !formData.nationId) {
       setMessage('Please fill in all required fields')
       return
     }
@@ -230,7 +265,7 @@ export default function WarSimulatorV2() {
   }
 
   const joinWar = async (warId: string, asSpectator = false) => {
-    if (!formData.playerName || !formData.nationName) {
+    if (!formData.playerName || !formData.nationName || (!asSpectator && !formData.nationId)) {
       setMessage('Please fill in all required fields')
       return
     }
@@ -432,7 +467,7 @@ export default function WarSimulatorV2() {
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-slate-300 mb-2">🆔 Nation ID (Optional)</label>
+                          <label className="block text-sm font-medium text-slate-300 mb-2">🆔 Nation ID *</label>
                           <div className="relative">
                             <input
                               type="text"
@@ -444,6 +479,7 @@ export default function WarSimulatorV2() {
                               className="w-full bg-slate-600 border border-slate-500 rounded-lg px-3 py-2 text-white 
                                        focus:border-blue-400 focus:outline-none transition-colors"
                               placeholder="P&W Nation ID..."
+                              required
                             />
                             {validatingNation && (
                               <div className="absolute right-3 top-3">
@@ -702,7 +738,7 @@ export default function WarSimulatorV2() {
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-2">🆔 Nation ID (Optional)</label>
+                    <label className="block text-sm font-medium text-slate-300 mb-2">🆔 Nation ID *</label>
                     <div className="relative">
                       <input
                         type="text"
@@ -714,6 +750,7 @@ export default function WarSimulatorV2() {
                         className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white 
                                  focus:border-blue-400 focus:outline-none transition-colors"
                         placeholder="P&W Nation ID..."
+                        required
                       />
                       {validatingNation && (
                         <div className="absolute right-3 top-3">
