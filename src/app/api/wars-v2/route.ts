@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { CreateWarRequest, JoinWarRequest, War } from '@/types/war-v2'
+import { randomUUID } from 'crypto'
 
 if (!supabaseAdmin) {
   console.error('Supabase admin client not initialized - Environment variables:')
@@ -193,13 +194,16 @@ export async function POST(request: NextRequest) {
 
       // Generate player ID (could be user ID or session ID)
       const playerId = `player_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+      
+      // Generate UUID for created_by field
+      const createdByUuid = randomUUID()
 
       // Create war
       const { data: war, error: warError } = await supabase
         .from('wars')
         .insert({
           name,
-          created_by: playerId,
+          created_by: createdByUuid,
           max_players: maxPlayers || 2,
           turn_duration: turnDuration || 120,
           current_players: 1
