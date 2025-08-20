@@ -7,7 +7,7 @@
   "crons": [
     {
       "path": "/api/wars-v2/scheduled-cleanup",
-      "schedule": "*/15 * * * *"
+      "schedule": "0 6 * * *"
     }
   ]
 }
