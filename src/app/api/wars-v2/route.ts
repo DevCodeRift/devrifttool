@@ -43,6 +43,9 @@ export async function GET(request: NextRequest) {
         .eq('war_id', warId)
         .order('joined_at', { ascending: true })
 
+      console.log('Fetched participants for war', warId, ':', participants?.length || 0, 'participants')
+      console.log('Participants:', participants?.map(p => ({ playerId: p.player_id, name: p.player_name, isHost: p.is_host })))
+
       if (participantsError) {
         console.error('Error fetching participants:', participantsError)
         return NextResponse.json({ error: 'Failed to fetch participants' }, { status: 500 })
@@ -85,7 +88,11 @@ export async function GET(request: NextRequest) {
         updatedAt: new Date(war.updated_at)
       }
 
-      return NextResponse.json(warData)
+      return NextResponse.json(warData, {
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate'
+        }
+      })
     } else {
       // Get all active wars
       const { data: wars, error: warsError } = await supabase
@@ -157,7 +164,11 @@ export async function GET(request: NextRequest) {
         updatedAt: new Date(war.updated_at)
       })) || []
 
-      return NextResponse.json(formattedWars)
+      return NextResponse.json(formattedWars, {
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate'
+        }
+      })
     }
   } catch (error) {
     console.error('GET Wars API error:', error)
@@ -245,6 +256,13 @@ export async function POST(request: NextRequest) {
         .select()
         .single()
 
+      console.log('Created war participant (host):', {
+        warId: war.id,
+        playerId,
+        playerName,
+        participantId: participant?.id
+      })
+
       if (participantError) {
         console.error('Error adding participant:', participantError)
         return NextResponse.json({ error: 'Failed to add participant' }, { status: 500 })
@@ -312,6 +330,14 @@ export async function POST(request: NextRequest) {
         })
         .select()
         .single()
+
+      console.log('Added war participant (joiner):', {
+        warId,
+        playerId,
+        playerName,
+        asSpectator,
+        participantId: participant?.id
+      })
 
       if (participantError) {
         console.error('Error adding participant:', participantError)

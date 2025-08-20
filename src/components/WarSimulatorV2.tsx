@@ -18,9 +18,29 @@ export default function WarSimulatorV2() {
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
 
+  // Form states
+  const [showCreateForm, setShowCreateForm] = useState(false)
+  const [showJoinForm, setShowJoinForm] = useState<string | null>(null)
+  const [formData, setFormData] = useState({
+    warName: '',
+    maxPlayers: 2,
+    turnDuration: 120,
+    playerName: '',
+    nationName: '',
+    nationId: '',
+    isSpectator: false
+  })
+  const [nationData, setNationData] = useState<any>(null)
+  const [validatingNation, setValidatingNation] = useState(false)
+
   const loadWars = async () => {
     try {
-      const response = await fetch('/api/wars-v2')
+      const response = await fetch('/api/wars-v2', {
+        cache: 'no-cache',
+        headers: {
+          'Cache-Control': 'no-cache'
+        }
+      })
       if (response.ok) {
         const data = await response.json()
         setWars(data)
@@ -45,6 +65,17 @@ export default function WarSimulatorV2() {
     return () => clearInterval(interval)
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Poll current war for real-time updates
+  useEffect(() => {
+    if (!currentWar) return
+
+    const interval = setInterval(() => {
+      loadWar(currentWar.id)
+    }, 3000) // Refresh current war every 3 seconds for real-time updates
+
+    return () => clearInterval(interval)
+  }, [currentWar?.id]) // eslint-disable-line react-hooks/exhaustive-deps
+
   // Update current player participant when war changes
   useEffect(() => {
     if (currentWar && playerId) {
@@ -55,7 +86,12 @@ export default function WarSimulatorV2() {
 
   const loadWar = async (warId: string) => {
     try {
-      const response = await fetch(`/api/wars-v2?warId=${warId}`)
+      const response = await fetch(`/api/wars-v2?warId=${warId}`, {
+        cache: 'no-cache',
+        headers: {
+          'Cache-Control': 'no-cache'
+        }
+      })
       if (response.ok) {
         const war = await response.json()
         setCurrentWar(war)
@@ -65,12 +101,53 @@ export default function WarSimulatorV2() {
     }
   }
 
+  const validateNationId = async (nationId: string) => {
+    if (!nationId || nationId.length < 3) {
+      setNationData(null)
+      return
+    }
+
+    setValidatingNation(true)
+    try {
+      const response = await fetch(`/api/pnw/nation?id=${nationId}`)
+      if (response.ok) {
+        const data = await response.json()
+        setNationData(data)
+        setFormData(prev => ({
+          ...prev,
+          nationName: data.nation_name || '',
+          playerName: data.leader_name || prev.playerName
+        }))
+      } else {
+        setNationData(null)
+      }
+    } catch (error) {
+      console.error('Error validating nation:', error)
+      setNationData(null)
+    }
+    setValidatingNation(false)
+  }
+
+  const resetForm = () => {
+    setFormData({
+      warName: '',
+      maxPlayers: 2,
+      turnDuration: 120,
+      playerName: '',
+      nationName: '',
+      nationId: '',
+      isSpectator: false
+    })
+    setNationData(null)
+    setShowCreateForm(false)
+    setShowJoinForm(null)
+  }
+
   const createWar = async () => {
-    const name = prompt('War name:')
-    const playerName = prompt('Your player name:')
-    const nationName = prompt('Your nation name:')
-    
-    if (!name || !playerName || !nationName) return
+    if (!formData.warName || !formData.playerName || !formData.nationName) {
+      setMessage('Please fill in all required fields')
+      return
+    }
 
     setLoading(true)
     try {
@@ -79,11 +156,12 @@ export default function WarSimulatorV2() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'create',
-          name,
-          maxPlayers: parseInt(prompt('Max players (2-10):') || '2'),
-          turnDuration: parseInt(prompt('Turn duration in seconds (60-300):') || '120'),
-          playerName,
-          nationName
+          name: formData.warName,
+          maxPlayers: formData.maxPlayers,
+          turnDuration: formData.turnDuration,
+          playerName: formData.playerName,
+          nationName: formData.nationName,
+          nationId: formData.nationId || undefined
         })
       })
 
@@ -91,6 +169,7 @@ export default function WarSimulatorV2() {
         const result = await response.json()
         setPlayerId(result.playerId)
         setMessage('War created successfully!')
+        resetForm()
         loadWars()
         loadWar(result.warId)
       } else {
@@ -104,10 +183,10 @@ export default function WarSimulatorV2() {
   }
 
   const joinWar = async (warId: string, asSpectator = false) => {
-    const playerName = prompt('Your player name:')
-    const nationName = prompt('Your nation name:')
-    
-    if (!playerName || !nationName) return
+    if (!formData.playerName || !formData.nationName) {
+      setMessage('Please fill in all required fields')
+      return
+    }
 
     setLoading(true)
     try {
@@ -117,8 +196,9 @@ export default function WarSimulatorV2() {
         body: JSON.stringify({
           action: 'join',
           warId,
-          playerName,
-          nationName,
+          playerName: formData.playerName,
+          nationName: formData.nationName,
+          nationId: formData.nationId || undefined,
           asSpectator
         })
       })
@@ -127,6 +207,7 @@ export default function WarSimulatorV2() {
         const result = await response.json()
         setPlayerId(result.playerId)
         setMessage(result.message)
+        resetForm()
         loadWars()
         loadWar(warId)
       } else {
@@ -226,21 +307,150 @@ export default function WarSimulatorV2() {
           )}
 
           {/* Create War Section */}
-          <div className="mb-12 text-center">
-            <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-8 max-w-md mx-auto border border-slate-600/30">
-              <h2 className="text-2xl font-bold text-white mb-4">Start New War</h2>
-              <p className="text-slate-300 mb-6">Create a multiplayer war room for unlimited players</p>
-              <button
-                onClick={createWar}
-                disabled={loading}
-                className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 
-                         text-white font-bold px-8 py-3 rounded-lg transition-all duration-200 
-                         disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl
-                         transform hover:scale-105"
-              >
-                {loading ? '⚡ Creating...' : '🚀 Create War Room'}
-              </button>
-            </div>
+          <div className="mb-12">
+            {!showCreateForm ? (
+              <div className="text-center">
+                <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-8 max-w-md mx-auto border border-slate-600/30">
+                  <h2 className="text-2xl font-bold text-white mb-4">Start New War</h2>
+                  <p className="text-slate-300 mb-6">Create a multiplayer war room for unlimited players</p>
+                  <button
+                    onClick={() => setShowCreateForm(true)}
+                    className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 
+                             text-white font-bold px-8 py-3 rounded-lg transition-all duration-200 
+                             shadow-lg hover:shadow-xl transform hover:scale-105"
+                  >
+                    🚀 Create War Room
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="max-w-2xl mx-auto">
+                <div className="bg-slate-800/60 backdrop-blur-sm rounded-xl p-8 border border-slate-600/30">
+                  <div className="flex justify-between items-center mb-6">
+                    <h2 className="text-2xl font-bold text-white">🛠️ Create New War</h2>
+                    <button
+                      onClick={resetForm}
+                      className="text-slate-400 hover:text-white transition-colors"
+                    >
+                      ✕
+                    </button>
+                  </div>
+
+                  <div className="grid gap-6">
+                    {/* War Settings */}
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-slate-300 mb-2">🏛️ War Name</label>
+                        <input
+                          type="text"
+                          value={formData.warName}
+                          onChange={(e) => setFormData(prev => ({ ...prev, warName: e.target.value }))}
+                          className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white 
+                                   focus:border-blue-400 focus:outline-none transition-colors"
+                          placeholder="Enter war name..."
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-300 mb-2">👥 Max Players</label>
+                        <select
+                          value={formData.maxPlayers}
+                          onChange={(e) => setFormData(prev => ({ ...prev, maxPlayers: parseInt(e.target.value) }))}
+                          className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white 
+                                   focus:border-blue-400 focus:outline-none transition-colors"
+                        >
+                          {[2,3,4,5,6,7,8,9,10].map(n => (
+                            <option key={n} value={n}>{n} Players</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* Nation Information */}
+                    <div className="bg-slate-700/30 rounded-lg p-4">
+                      <h3 className="text-lg font-medium text-white mb-4">🏛️ Your Nation</h3>
+                      <div className="grid md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-slate-300 mb-2">🎭 Player Name</label>
+                          <input
+                            type="text"
+                            value={formData.playerName}
+                            onChange={(e) => setFormData(prev => ({ ...prev, playerName: e.target.value }))}
+                            className="w-full bg-slate-600 border border-slate-500 rounded-lg px-3 py-2 text-white 
+                                     focus:border-blue-400 focus:outline-none transition-colors"
+                            placeholder="Your name..."
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-slate-300 mb-2">🆔 Nation ID (Optional)</label>
+                          <div className="relative">
+                            <input
+                              type="text"
+                              value={formData.nationId}
+                              onChange={(e) => {
+                                setFormData(prev => ({ ...prev, nationId: e.target.value }))
+                                validateNationId(e.target.value)
+                              }}
+                              className="w-full bg-slate-600 border border-slate-500 rounded-lg px-3 py-2 text-white 
+                                       focus:border-blue-400 focus:outline-none transition-colors"
+                              placeholder="P&W Nation ID..."
+                            />
+                            {validatingNation && (
+                              <div className="absolute right-3 top-3">
+                                <div className="animate-spin h-4 w-4 border-2 border-blue-400 border-t-transparent rounded-full"></div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {nationData ? (
+                        <div className="mt-4 p-3 bg-green-500/20 border border-green-500/30 rounded-lg">
+                          <p className="text-green-300 font-medium">✅ Nation Found: {nationData.nation_name}</p>
+                          <p className="text-green-200 text-sm">Leader: {nationData.leader_name}</p>
+                          <p className="text-green-200 text-sm">Cities: {nationData.cities} | Score: {nationData.score?.toLocaleString()}</p>
+                        </div>
+                      ) : formData.nationId ? (
+                        <div className="mt-4 p-3 bg-red-500/20 border border-red-500/30 rounded-lg">
+                          <p className="text-red-300">❌ Nation not found or invalid ID</p>
+                        </div>
+                      ) : null}
+
+                      <div className="mt-4">
+                        <label className="block text-sm font-medium text-slate-300 mb-2">🏛️ Nation Name</label>
+                        <input
+                          type="text"
+                          value={formData.nationName}
+                          onChange={(e) => setFormData(prev => ({ ...prev, nationName: e.target.value }))}
+                          className="w-full bg-slate-600 border border-slate-500 rounded-lg px-3 py-2 text-white 
+                                   focus:border-blue-400 focus:outline-none transition-colors"
+                          placeholder="Nation name..."
+                        />
+                      </div>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex gap-4">
+                      <button
+                        onClick={resetForm}
+                        className="flex-1 bg-slate-600 hover:bg-slate-500 text-white px-6 py-3 rounded-lg 
+                                 transition-colors duration-200 font-medium"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={createWar}
+                        disabled={loading || !formData.warName || !formData.playerName || !formData.nationName}
+                        className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 
+                                 text-white px-6 py-3 rounded-lg transition-all duration-200 disabled:opacity-50 
+                                 disabled:cursor-not-allowed font-medium shadow-lg"
+                      >
+                        {loading ? '⚡ Creating...' : '🚀 Create War'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Active Wars */}
@@ -309,7 +519,7 @@ export default function WarSimulatorV2() {
                       {war.status === 'waiting' && (
                         <>
                           <button
-                            onClick={() => joinWar(war.id)}
+                            onClick={() => setShowJoinForm(war.id)}
                             disabled={loading}
                             className="flex-1 bg-green-600 hover:bg-green-500 text-white px-3 py-2 rounded-lg 
                                      transition-colors duration-200 disabled:opacity-50 font-medium text-sm"
@@ -317,7 +527,10 @@ export default function WarSimulatorV2() {
                             ⚔️ Join
                           </button>
                           <button
-                            onClick={() => joinWar(war.id, true)}
+                            onClick={() => {
+                              setFormData(prev => ({ ...prev, isSpectator: true }))
+                              setShowJoinForm(war.id)
+                            }}
                             disabled={loading}
                             className="flex-1 bg-gray-600 hover:bg-gray-500 text-white px-3 py-2 rounded-lg 
                                      transition-colors duration-200 disabled:opacity-50 font-medium text-sm"
@@ -328,7 +541,10 @@ export default function WarSimulatorV2() {
                       )}
                       {war.status === 'active' && (
                         <button
-                          onClick={() => joinWar(war.id, true)}
+                          onClick={() => {
+                            setFormData(prev => ({ ...prev, isSpectator: true }))
+                            setShowJoinForm(war.id)
+                          }}
                           disabled={loading}
                           className="flex-1 bg-gray-600 hover:bg-gray-500 text-white px-3 py-2 rounded-lg 
                                    transition-colors duration-200 disabled:opacity-50 font-medium text-sm"
@@ -342,6 +558,104 @@ export default function WarSimulatorV2() {
               </div>
             )}
           </div>
+
+          {/* Join War Form Modal */}
+          {showJoinForm && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+              <div className="bg-slate-800 rounded-xl p-8 max-w-md w-full border border-slate-600">
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-2xl font-bold text-white">
+                    {formData.isSpectator ? '👁️ Join as Spectator' : '⚔️ Join War'}
+                  </h2>
+                  <button
+                    onClick={resetForm}
+                    className="text-slate-400 hover:text-white transition-colors"
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-2">🎭 Player Name</label>
+                    <input
+                      type="text"
+                      value={formData.playerName}
+                      onChange={(e) => setFormData(prev => ({ ...prev, playerName: e.target.value }))}
+                      className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white 
+                               focus:border-blue-400 focus:outline-none transition-colors"
+                      placeholder="Your name..."
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-2">🆔 Nation ID (Optional)</label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={formData.nationId}
+                        onChange={(e) => {
+                          setFormData(prev => ({ ...prev, nationId: e.target.value }))
+                          validateNationId(e.target.value)
+                        }}
+                        className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white 
+                                 focus:border-blue-400 focus:outline-none transition-colors"
+                        placeholder="P&W Nation ID..."
+                      />
+                      {validatingNation && (
+                        <div className="absolute right-3 top-3">
+                          <div className="animate-spin h-4 w-4 border-2 border-blue-400 border-t-transparent rounded-full"></div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {nationData ? (
+                    <div className="p-3 bg-green-500/20 border border-green-500/30 rounded-lg">
+                      <p className="text-green-300 font-medium">✅ Nation Found: {nationData.nation_name}</p>
+                      <p className="text-green-200 text-sm">Leader: {nationData.leader_name}</p>
+                      <p className="text-green-200 text-sm">Cities: {nationData.cities} | Score: {nationData.score?.toLocaleString()}</p>
+                    </div>
+                  ) : formData.nationId ? (
+                    <div className="p-3 bg-red-500/20 border border-red-500/30 rounded-lg">
+                      <p className="text-red-300">❌ Nation not found or invalid ID</p>
+                    </div>
+                  ) : null}
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-2">🏛️ Nation Name</label>
+                    <input
+                      type="text"
+                      value={formData.nationName}
+                      onChange={(e) => setFormData(prev => ({ ...prev, nationName: e.target.value }))}
+                      className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white 
+                               focus:border-blue-400 focus:outline-none transition-colors"
+                      placeholder="Nation name..."
+                    />
+                  </div>
+
+                  <div className="flex gap-4 pt-4">
+                    <button
+                      onClick={resetForm}
+                      className="flex-1 bg-slate-600 hover:bg-slate-500 text-white px-4 py-2 rounded-lg 
+                               transition-colors duration-200 font-medium"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={() => joinWar(showJoinForm, formData.isSpectator)}
+                      disabled={loading || !formData.playerName || !formData.nationName}
+                      className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 
+                               text-white px-4 py-2 rounded-lg transition-all duration-200 disabled:opacity-50 
+                               disabled:cursor-not-allowed font-medium shadow-lg"
+                    >
+                      {loading ? '⚡ Joining...' : formData.isSpectator ? '👁️ Spectate' : '⚔️ Join War'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     )
@@ -379,6 +693,14 @@ export default function WarSimulatorV2() {
                          transition-colors duration-200 font-medium"
               >
                 ← Back to Wars
+              </button>
+              <button
+                onClick={() => loadWar(currentWar.id)}
+                disabled={loading}
+                className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-lg 
+                         transition-colors duration-200 font-medium disabled:opacity-50"
+              >
+                🔄 Refresh
               </button>
               {currentWar.status === 'active' && (
                 <button
