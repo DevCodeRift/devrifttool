@@ -19,11 +19,11 @@ export default function BattleResultDisplay({
 }: BattleResultDisplayProps) {
   const getVictoryIcon = (victoryType: string) => {
     switch (victoryType) {
-      case 'immense_triumph': return '🏆'
-      case 'moderate_success': return '✅'
-      case 'pyrrhic_victory': return '⚡'
-      case 'utter_failure': return '💀'
-      default: return '❓'
+      case 'immense_triumph': return 'Victory'
+      case 'moderate_success': return 'Success'
+      case 'pyrrhic_victory': return 'Pyrrhic'
+      case 'utter_failure': return 'Defeat'
+      default: return 'Unknown'
     }
   }
 
@@ -91,7 +91,7 @@ export default function BattleResultDisplay({
           </div>
         </div>
         <div className="bg-slate-700/50 rounded-lg p-4">
-          <h4 className="text-blue-400 font-semibold mb-2">🛡️ Defender Rolls</h4>
+          <h4 className="text-blue-400 font-semibold mb-2">Defender Rolls</h4>
           <div className="space-y-1">
             {battleResult.defenderRolls.map((roll, index) => (
               <div key={index} className="flex justify-between text-sm">
@@ -106,7 +106,7 @@ export default function BattleResultDisplay({
       {/* Casualties */}
       <div className="grid md:grid-cols-2 gap-4 mb-6">
         <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-4">
-          <h4 className="text-red-400 font-semibold mb-3">💀 Attacker Casualties</h4>
+          <h4 className="text-red-400 font-semibold mb-3">Attacker Casualties</h4>
           <div className="space-y-2 text-sm">
             {battleResult.attackerCasualties.soldiers > 0 && (
               <div className="flex justify-between">
@@ -122,13 +122,13 @@ export default function BattleResultDisplay({
             )}
             {battleResult.attackerCasualties.aircraft > 0 && (
               <div className="flex justify-between">
-                <span>✈️ Aircraft:</span>
+                <span>Aircraft:</span>
                 <span className="text-red-300 font-mono">{battleResult.attackerCasualties.aircraft.toLocaleString()}</span>
               </div>
             )}
             {battleResult.attackerCasualties.ships > 0 && (
               <div className="flex justify-between">
-                <span>🚢 Ships:</span>
+                <span>Ships:</span>
                 <span className="text-red-300 font-mono">{battleResult.attackerCasualties.ships.toLocaleString()}</span>
               </div>
             )}
@@ -139,7 +139,7 @@ export default function BattleResultDisplay({
         </div>
 
         <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-4">
-          <h4 className="text-red-400 font-semibold mb-3">💀 Defender Casualties</h4>
+          <h4 className="text-red-400 font-semibold mb-3">Defender Casualties</h4>
           <div className="space-y-2 text-sm">
             {battleResult.defenderCasualties.soldiers > 0 && (
               <div className="flex justify-between">
@@ -155,13 +155,13 @@ export default function BattleResultDisplay({
             )}
             {battleResult.defenderCasualties.aircraft > 0 && (
               <div className="flex justify-between">
-                <span>✈️ Aircraft:</span>
+                <span>Aircraft:</span>
                 <span className="text-red-300 font-mono">{battleResult.defenderCasualties.aircraft.toLocaleString()}</span>
               </div>
             )}
             {battleResult.defenderCasualties.ships > 0 && (
               <div className="flex justify-between">
-                <span>🚢 Ships:</span>
+                <span>Ships:</span>
                 <span className="text-red-300 font-mono">{battleResult.defenderCasualties.ships.toLocaleString()}</span>
               </div>
             )}
@@ -189,7 +189,7 @@ export default function BattleResultDisplay({
         </div>
 
         <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4">
-          <h4 className="text-blue-400 font-semibold mb-2">🎯 Space Control</h4>
+          <h4 className="text-blue-400 font-semibold mb-2">Space Control</h4>
           <div className="text-sm">
             {battleResult.spaceControlGained && (
               <div className="text-green-400">
@@ -229,7 +229,7 @@ export default function BattleResultDisplay({
           <div id={`calculations-${Date.now()}`} className="hidden space-y-3 text-sm">
             <div className="grid md:grid-cols-2 gap-4">
               <div>
-                <h5 className="text-cyan-400 font-medium mb-2">⚔️ Strength Values</h5>
+                <h5 className="text-cyan-400 font-medium mb-2">Strength Values</h5>
                 <div className="space-y-1 text-xs font-mono">
                   <div>Attacker: {battleResult.calculationDetails.attackerStrength}</div>
                   <div>Defender: {battleResult.calculationDetails.defenderStrength}</div>
@@ -238,12 +238,12 @@ export default function BattleResultDisplay({
               </div>
               
               <div>
-                <h5 className="text-yellow-400 font-medium mb-2">🛡️ Modifiers</h5>
+                <h5 className="text-yellow-400 font-medium mb-2">Modifiers</h5>
                 <div className="space-y-1 text-xs">
-                  <div>Fortified: {battleResult.calculationDetails.modifiers.fortified ? '✅' : '❌'}</div>
-                  <div>Air Superiority: {battleResult.calculationDetails.modifiers.airSuperiority ? '✅' : '❌'}</div>
-                  <div>Ground Control: {battleResult.calculationDetails.modifiers.groundControl ? '✅' : '❌'}</div>
-                  <div>Blockade: {battleResult.calculationDetails.modifiers.blockade ? '✅' : '❌'}</div>
+                  <div>Fortified: {battleResult.calculationDetails.modifiers.fortified ? 'Yes' : 'No'}</div>
+                  <div>Air Superiority: {battleResult.calculationDetails.modifiers.airSuperiority ? 'Yes' : 'No'}</div>
+                  <div>Ground Control: {battleResult.calculationDetails.modifiers.groundControl ? 'Yes' : 'No'}</div>
+                  <div>Blockade: {battleResult.calculationDetails.modifiers.blockade ? 'Yes' : 'No'}</div>
                 </div>
               </div>
             </div>

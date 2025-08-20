@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
 import ComprehensiveBattleLog from '@/components/war/ComprehensiveBattleLog'
 
 interface WarHistoryEntry {
@@ -27,16 +28,29 @@ interface WarHistoryEntry {
 }
 
 export default function WarHistoryPage() {
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
+  const router = useRouter()
   const [wars, setWars] = useState<WarHistoryEntry[]>([])
   const [selectedWar, setSelectedWar] = useState<string | null>(null)
   const [selectedPlayer, setSelectedPlayer] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<'all' | 'my-wars' | 'completed' | 'active'>('all')
 
+  // Authentication check and redirect
   useEffect(() => {
-    loadWarHistory()
-  }, [])
+    if (status === 'loading') return // Still loading
+    
+    if (!session) {
+      router.push('/auth/signin')
+      return
+    }
+  }, [session, status, router])
+
+  useEffect(() => {
+    if (session) {
+      loadWarHistory()
+    }
+  }, [session])
 
   const loadWarHistory = async () => {
     setLoading(true)
@@ -90,11 +104,35 @@ export default function WarHistoryPage() {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'active': return '⚔️'
-      case 'completed': return '🏆'
-      case 'waiting': return '⏳'
-      default: return '❓'
+      case 'active': return 'Active'
+      case 'completed': return 'Complete'
+      case 'waiting': return 'Waiting'
+      default: return 'Unknown'
     }
+  }
+
+  // Show loading spinner while checking authentication
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400 mx-auto mb-4"></div>
+          <p className="text-gray-400">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Show redirect message while redirecting unauthenticated users
+  if (!session) {
+    return (
+      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400 mx-auto mb-4"></div>
+          <p className="text-gray-400">Redirecting to login...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -116,8 +154,8 @@ export default function WarHistoryPage() {
             {[
               { key: 'all', label: '🌍 All Wars', count: wars.length },
               { key: 'my-wars', label: '👤 My Wars', count: getFilteredWars().length },
-              { key: 'active', label: '⚔️ Active', count: wars.filter(w => w.status === 'active').length },
-              { key: 'completed', label: '🏆 Completed', count: wars.filter(w => w.status === 'completed').length }
+              { key: 'active', label: 'Active', count: wars.filter(w => w.status === 'active').length },
+              { key: 'completed', label: 'Completed', count: wars.filter(w => w.status === 'completed').length }
             ].map(filterOption => (
               <button
                 key={filterOption.key}
@@ -141,7 +179,7 @@ export default function WarHistoryPage() {
             <div className="bg-slate-800/60 backdrop-blur-sm rounded-xl p-6 border border-slate-600/30">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-2xl font-bold text-white">
-                  {selectedWar ? '⚔️ War Battle Log' : '👤 Player Battle History'}
+                  {selectedWar ? 'War Battle Log' : 'Player Battle History'}
                 </h2>
                 <button
                   onClick={() => {
@@ -208,7 +246,7 @@ export default function WarHistoryPage() {
 
                 {/* Participants */}
                 <div>
-                  <h4 className="text-slate-300 font-medium mb-3">👥 Participants</h4>
+                  <h4 className="text-slate-300 font-medium mb-3">Participants</h4>
                   <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
                     {war.participants.map(participant => (
                       <div
@@ -236,7 +274,7 @@ export default function WarHistoryPage() {
                             className="text-slate-400 hover:text-blue-400 transition-colors text-sm"
                             title="View player battle history"
                           >
-                            📊
+                            Stats
                           </button>
                         </div>
                       </div>

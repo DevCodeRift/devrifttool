@@ -7,6 +7,17 @@
   "crons": [
     {
       "path": "/api/wars-v2/scheduled-cleanup",
+      "schedule": "0 2 * * *"
+    }
+  ]
+}mmand": "npm run build",
+  "outputDirectory": ".next",
+  "framework": "nextjs",
+  "installCommand": "npm install",
+  "devCommand": "npm run dev",
+  "crons": [
+    {
+      "path": "/api/wars-v2/scheduled-cleanup",
       "schedule": "0 6 * * *"
     }
   ]

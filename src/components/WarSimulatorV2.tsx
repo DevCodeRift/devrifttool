@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useSession, signOut } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
 import { War, Nation, ActionType, ExecuteActionRequest, BattleResult } from '@/types/war-v2'
 import BattleResultDisplay from '@/components/war/BattleResultDisplay'
 import ComprehensiveBattleLog from '@/components/war/ComprehensiveBattleLog'
@@ -19,7 +20,8 @@ interface NationData {
 }
 
 export default function WarSimulatorV2() {
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
+  const router = useRouter()
   const [wars, setWars] = useState<War[]>([])
   const [currentWar, setCurrentWar] = useState<War | null>(null)
   const [playerId, setPlayerId] = useState<string>('')
@@ -103,6 +105,16 @@ export default function WarSimulatorV2() {
       playerName: session?.user?.name || session?.user?.email || ''
     }))
   }, [session])
+
+  // Authentication check and redirect
+  useEffect(() => {
+    if (status === 'loading') return // Still loading
+    
+    if (!session) {
+      router.push('/auth/signin')
+      return
+    }
+  }, [session, status, router])
 
   // Poll current war for real-time updates
   useEffect(() => {
@@ -565,7 +577,7 @@ export default function WarSimulatorV2() {
                              text-white font-bold px-8 py-3 rounded-lg transition-all duration-200 
                              shadow-lg hover:shadow-xl transform hover:scale-105"
                   >
-                    🚀 Create War Room
+                    Create War Room
                   </button>
                 </div>
               </div>
@@ -573,7 +585,7 @@ export default function WarSimulatorV2() {
               <div className="max-w-2xl mx-auto">
                 <div className="bg-slate-800/60 backdrop-blur-sm rounded-xl p-8 border border-slate-600/30">
                   <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-2xl font-bold text-white">🛠️ Create New War</h2>
+                    <h2 className="text-2xl font-bold text-white">Create New War</h2>
                     <button
                       onClick={resetForm}
                       className="text-slate-400 hover:text-white transition-colors"
@@ -586,7 +598,7 @@ export default function WarSimulatorV2() {
                     {/* War Settings */}
                     <div className="grid md:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-slate-300 mb-2">🏛️ War Name</label>
+                        <label className="block text-sm font-medium text-slate-300 mb-2">War Name</label>
                         <input
                           type="text"
                           value={formData.warName}
@@ -597,7 +609,7 @@ export default function WarSimulatorV2() {
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-slate-300 mb-2">👥 Max Players</label>
+                        <label className="block text-sm font-medium text-slate-300 mb-2">Max Players</label>
                         <select
                           value={formData.maxPlayers}
                           onChange={(e) => setFormData(prev => ({ ...prev, maxPlayers: parseInt(e.target.value) }))}
@@ -610,7 +622,7 @@ export default function WarSimulatorV2() {
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-slate-300 mb-2">⏱️ Turn Duration</label>
+                        <label className="block text-sm font-medium text-slate-300 mb-2">Turn Duration</label>
                         <select
                           value={formData.turnDuration}
                           onChange={(e) => setFormData(prev => ({ ...prev, turnDuration: parseInt(e.target.value) }))}
@@ -627,7 +639,7 @@ export default function WarSimulatorV2() {
 
                     {/* Nation Information */}
                     <div className="bg-slate-700/30 rounded-lg p-4">
-                      <h3 className="text-lg font-medium text-white mb-4">🏛️ Your Nation</h3>
+                      <h3 className="text-lg font-medium text-white mb-4">Your Nation</h3>
                       <div className="grid md:grid-cols-2 gap-4">
                         <div>
                           <label className="block text-sm font-medium text-slate-300 mb-2">🎭 Player Name</label>
@@ -667,14 +679,14 @@ export default function WarSimulatorV2() {
                       {nationData ? (
                         <div className="mt-4 space-y-3">
                           <div className="p-3 bg-green-500/20 border border-green-500/30 rounded-lg">
-                            <p className="text-green-300 font-medium">✅ Nation Found: {nationData.nation_name}</p>
+                            <p className="text-green-300 font-medium">Nation Found: {nationData.nation_name}</p>
                             <p className="text-green-200 text-sm">Leader: {nationData.leader_name}</p>
                             <p className="text-green-200 text-sm">Cities: {nationData.cities} | Score: {nationData.score?.toLocaleString()}</p>
                           </div>
                           
                           {/* Military Type Selection */}
                           <div className="p-3 bg-slate-800/50 border border-slate-600/30 rounded-lg">
-                            <label className="block text-sm font-medium text-slate-300 mb-2">⚔️ Military Configuration</label>
+                            <label className="block text-sm font-medium text-slate-300 mb-2">Military Configuration</label>
                             <div className="flex gap-2">
                               <button
                                 type="button"
@@ -706,19 +718,19 @@ export default function WarSimulatorV2() {
                               return military ? (
                                 <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
                                   <div className="flex justify-between">
-                                    <span className="text-slate-400">🪖 Soldiers:</span>
+                                    <span className="text-slate-400">Soldiers:</span>
                                     <span className="text-green-400 font-medium">{military.soldiers.toLocaleString()}</span>
                                   </div>
                                   <div className="flex justify-between">
-                                    <span className="text-slate-400">🚗 Tanks:</span>
+                                    <span className="text-slate-400">Tanks:</span>
                                     <span className="text-blue-400 font-medium">{military.tanks.toLocaleString()}</span>
                                   </div>
                                   <div className="flex justify-between">
-                                    <span className="text-slate-400">✈️ Aircraft:</span>
+                                    <span className="text-slate-400">Aircraft:</span>
                                     <span className="text-purple-400 font-medium">{military.aircraft.toLocaleString()}</span>
                                   </div>
                                   <div className="flex justify-between">
-                                    <span className="text-slate-400">🚢 Ships:</span>
+                                    <span className="text-slate-400">Ships:</span>
                                     <span className="text-cyan-400 font-medium">{military.ships.toLocaleString()}</span>
                                   </div>
                                 </div>
@@ -739,7 +751,7 @@ export default function WarSimulatorV2() {
                       ) : null}
 
                       <div className="mt-4">
-                        <label className="block text-sm font-medium text-slate-300 mb-2">🏛️ Nation Name</label>
+                        <label className="block text-sm font-medium text-slate-300 mb-2">Nation Name</label>
                         <input
                           type="text"
                           value={formData.nationName}
@@ -767,7 +779,7 @@ export default function WarSimulatorV2() {
                                  text-white px-6 py-3 rounded-lg transition-all duration-200 disabled:opacity-50 
                                  disabled:cursor-not-allowed font-medium shadow-lg"
                       >
-                        {loading ? '⚡ Creating...' : '🚀 Create War'}
+                        {loading ? 'Creating...' : 'Create War'}
                       </button>
                     </div>
                   </div>
@@ -779,14 +791,14 @@ export default function WarSimulatorV2() {
           {/* Active Wars */}
           <div className="max-w-5xl mx-auto">
             <div className="flex justify-between items-center mb-8">
-              <h2 className="text-3xl font-bold text-white">🎯 Active War Rooms</h2>
+              <h2 className="text-3xl font-bold text-white">Active War Rooms</h2>
               <div className="flex gap-3">
                 <button
                   onClick={() => window.open('/war-history', '_blank')}
                   className="bg-purple-600 hover:bg-purple-500 text-white px-4 py-2 rounded-lg 
                            transition-colors duration-200 font-medium flex items-center gap-2"
                 >
-                  📊 War History
+                  War History
                 </button>
                 <button
                   onClick={callCleanup}
@@ -794,13 +806,12 @@ export default function WarSimulatorV2() {
                   className="bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded-lg 
                            transition-colors duration-200 font-medium disabled:opacity-50 flex items-center gap-2"
                 >
-                  🧹 Cleanup
+                  Cleanup
                 </button>
               </div>
             </div>
             {wars.length === 0 ? (
               <div className="text-center py-16">
-                <div className="text-6xl mb-4">⚔️</div>
                 <p className="text-slate-300 text-xl">No active wars found</p>
                 <p className="text-slate-400 mt-2">Create the first war room to get started!</p>
               </div>
@@ -818,14 +829,14 @@ export default function WarSimulatorV2() {
                           war.status === 'waiting' ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30' :
                           'bg-gray-500/20 text-gray-300 border border-gray-500/30'
                         }`}>
-                          {war.status === 'active' ? '🔥 Active' :
-                           war.status === 'waiting' ? '⏳ Waiting' : '✅ Completed'}
+                          {war.status === 'active' ? 'Active' :
+                           war.status === 'waiting' ? 'Waiting' : 'Completed'}
                         </span>
                         <span className="bg-blue-500/20 text-blue-300 px-3 py-1 rounded-full border border-blue-500/30">
-                          👥 {war.currentPlayers}/{war.maxPlayers}
+                          {war.currentPlayers}/{war.maxPlayers}
                         </span>
                         <span className="bg-purple-500/20 text-purple-300 px-3 py-1 rounded-full border border-purple-500/30">
-                          🎯 Turn {war.currentTurn}
+                          Turn {war.currentTurn}
                         </span>
                       </div>
                     </div>
@@ -956,7 +967,7 @@ export default function WarSimulatorV2() {
                   {nationData ? (
                     <div className="space-y-3">
                       <div className="p-3 bg-green-500/20 border border-green-500/30 rounded-lg">
-                        <p className="text-green-300 font-medium">✅ Nation Found: {nationData.nation_name}</p>
+                        <p className="text-green-300 font-medium">Nation Found: {nationData.nation_name}</p>
                         <p className="text-green-200 text-sm">Leader: {nationData.leader_name}</p>
                         <p className="text-green-200 text-sm">Cities: {nationData.cities} | Score: {nationData.score?.toLocaleString()}</p>
                       </div>
@@ -1066,6 +1077,30 @@ export default function WarSimulatorV2() {
     )
   }
 
+  // Show loading spinner while checking authentication
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400 mx-auto mb-4"></div>
+          <p className="text-gray-400">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Show redirect message while redirecting unauthenticated users
+  if (!session) {
+    return (
+      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400 mx-auto mb-4"></div>
+          <p className="text-gray-400">Redirecting to login...</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
       <div className="container mx-auto px-4 py-8">
@@ -1073,21 +1108,21 @@ export default function WarSimulatorV2() {
         <div className="bg-slate-800/60 backdrop-blur-sm rounded-xl p-6 mb-8 border border-slate-600/30">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-4xl font-bold text-white mb-2">⚔️ {currentWar.name}</h1>
+              <h1 className="text-4xl font-bold text-white mb-2">{currentWar.name}</h1>
               <div className="flex flex-wrap gap-3 text-sm">
                 <span className={`px-3 py-1 rounded-full font-medium ${
                   currentWar.status === 'active' ? 'bg-green-500/20 text-green-300 border border-green-500/30' :
                   currentWar.status === 'waiting' ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30' :
                   'bg-gray-500/20 text-gray-300 border border-gray-500/30'
                 }`}>
-                  {currentWar.status === 'active' ? '🔥 Active Battle' :
-                   currentWar.status === 'waiting' ? '⏳ Waiting for Players' : '✅ Completed'}
+                  {currentWar.status === 'active' ? 'Active Battle' :
+                   currentWar.status === 'waiting' ? 'Waiting for Players' : 'Completed'}
                 </span>
                 <span className="bg-purple-500/20 text-purple-300 px-3 py-1 rounded-full border border-purple-500/30">
-                  🎯 Turn {currentWar.currentTurn}
+                  Turn {currentWar.currentTurn}
                 </span>
                 <span className="bg-blue-500/20 text-blue-300 px-3 py-1 rounded-full border border-blue-500/30">
-                  👥 {currentWar.participants.filter(p => !p.isSpectator).length} Nations
+                  {currentWar.participants.filter(p => !p.isSpectator).length} Nations
                 </span>
                 {currentWar.status === 'active' && isTimerActive && (
                   <span className={`px-3 py-1 rounded-full border font-mono ${
@@ -1095,7 +1130,7 @@ export default function WarSimulatorV2() {
                     timeRemaining <= 30 ? 'bg-orange-500/20 text-orange-300 border-orange-500/30' :
                     'bg-cyan-500/20 text-cyan-300 border-cyan-500/30'
                   }`}>
-                    ⏱️ {formatTime(timeRemaining)}
+                    {formatTime(timeRemaining)}
                   </span>
                 )}
               </div>
@@ -1106,7 +1141,7 @@ export default function WarSimulatorV2() {
                 className="bg-purple-600 hover:bg-purple-500 text-white px-6 py-2 rounded-lg 
                          transition-colors duration-200 font-medium flex items-center gap-2"
               >
-                📊 War History
+                War History
               </button>
               <button
                 onClick={() => setCurrentWar(null)}
@@ -1276,7 +1311,7 @@ export default function WarSimulatorV2() {
                     {/* Space Control */}
                     {(participant.groundControl || participant.airSuperiority || participant.blockade || participant.fortified) && (
                       <div className="bg-slate-700/30 rounded-lg p-3">
-                        <h4 className="text-slate-300 font-medium mb-2">🎯 Space Control</h4>
+                        <h4 className="text-slate-300 font-medium mb-2">Space Control</h4>
                         <div className="flex flex-wrap gap-1">
                           {participant.groundControl && (
                             <span className="bg-green-500/30 text-green-300 px-2 py-1 rounded-full text-xs border border-green-500/50">
@@ -1375,7 +1410,7 @@ export default function WarSimulatorV2() {
 
             {/* Target Selection */}
             <div className="mb-6">
-              <label className="block text-sm font-medium text-slate-300 mb-2">🎯 Target Selection (for airstrikes/naval)</label>
+              <label className="block text-sm font-medium text-slate-300 mb-2">Target Selection (for airstrikes/naval)</label>
               <select
                 value={selectedTarget}
                 onChange={e => setSelectedTarget(e.target.value)}
@@ -1395,7 +1430,7 @@ export default function WarSimulatorV2() {
 
             {/* Available Targets */}
             <div className="space-y-4">
-              <h4 className="text-lg font-medium text-white mb-4">🎯 Available Enemy Nations:</h4>
+              <h4 className="text-lg font-medium text-white mb-4">Available Enemy Nations:</h4>
               {currentWar.participants
                 .filter(p => !p.isSpectator && !p.isEliminated && p.id !== playerParticipant.id)
                 .map(target => (

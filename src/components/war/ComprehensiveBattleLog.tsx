@@ -139,20 +139,20 @@ export default function ComprehensiveBattleLog({ warId, playerId, limit = 50 }: 
 
   const getActionIcon = (actionType: string) => {
     switch (actionType) {
-      case 'ground_attack': return '⚔️'
-      case 'airstrike': return '✈️'
-      case 'naval_attack': return '🚢'
-      default: return '💥'
+      case 'ground_attack': return 'Ground'
+      case 'airstrike': return 'Air'
+      case 'naval_attack': return 'Naval'
+      default: return 'Action'
     }
   }
 
   const getVictoryIcon = (victoryType: string) => {
     switch (victoryType) {
-      case 'immense_triumph': return '🏆'
-      case 'moderate_success': return '✅'
-      case 'pyrrhic_victory': return '⚡'
-      case 'utter_failure': return '💀'
-      default: return '❓'
+      case 'immense_triumph': return 'Victory'
+      case 'moderate_success': return 'Success'
+      case 'pyrrhic_victory': return 'Pyrrhic'
+      case 'utter_failure': return 'Defeat'
+      default: return 'Unknown'
     }
   }
 
@@ -259,7 +259,7 @@ export default function ComprehensiveBattleLog({ warId, playerId, limit = 50 }: 
                     <div className="p-4 space-y-4">
                       {/* Military Used */}
                       <div>
-                        <h4 className="text-slate-300 font-semibold mb-2">⚔️ Military Used</h4>
+                        <h4 className="text-slate-300 font-semibold mb-2">Military Used</h4>
                         <div className="grid grid-cols-2 md:grid-cols-5 gap-2 text-sm">
                           {entry.militaryUsed.soldiers > 0 && (
                             <div className="bg-slate-700/50 rounded p-2">
@@ -306,7 +306,7 @@ export default function ComprehensiveBattleLog({ warId, playerId, limit = 50 }: 
                           </div>
                         </div>
                         <div>
-                          <h4 className="text-blue-400 font-semibold mb-2">🛡️ Defender Rolls</h4>
+                          <h4 className="text-blue-400 font-semibold mb-2">Defender Rolls</h4>
                           <div className="space-y-1 text-sm">
                             {entry.rolls.defender.map((roll, index) => (
                               <div key={index} className="flex justify-between bg-slate-700/50 rounded p-2">
@@ -320,7 +320,7 @@ export default function ComprehensiveBattleLog({ warId, playerId, limit = 50 }: 
 
                       {/* Before/After Comparison */}
                       <div>
-                        <h4 className="text-slate-300 font-semibold mb-2">📊 Military State Comparison</h4>
+                        <h4 className="text-slate-300 font-semibold mb-2">Military State Comparison</h4>
                         <div className="overflow-x-auto">
                           <table className="w-full text-sm">
                             <thead>
@@ -427,7 +427,7 @@ export default function ComprehensiveBattleLog({ warId, playerId, limit = 50 }: 
                       {/* Additional Effects */}
                       {(entry.infrastructureDamage > 0 || entry.spaceControlGained || entry.spaceControlLost) && (
                         <div>
-                          <h4 className="text-slate-300 font-semibold mb-2">🎯 Additional Effects</h4>
+                          <h4 className="text-slate-300 font-semibold mb-2">Additional Effects</h4>
                           <div className="grid md:grid-cols-3 gap-3 text-sm">
                             {entry.infrastructureDamage > 0 && (
                               <div className="bg-orange-900/20 border border-orange-500/30 rounded p-2">

@@ -16,8 +16,12 @@ export default function SignInForm() {
 
   useEffect(() => {
     const urlMessage = searchParams.get('message')
+    const callbackUrl = searchParams.get('callbackUrl')
+    
     if (urlMessage) {
       setMessage(urlMessage)
+    } else if (callbackUrl && callbackUrl !== '/dashboard') {
+      setMessage('Please sign in to access this page.')
     }
   }, [searchParams])
 
@@ -27,6 +31,8 @@ export default function SignInForm() {
     setError('')
 
     try {
+      const callbackUrl = searchParams.get('callbackUrl') || '/dashboard'
+      
       const result = await signIn('credentials', {
         username,
         password,
@@ -36,7 +42,7 @@ export default function SignInForm() {
       if (result?.error) {
         setError('Invalid username or password')
       } else {
-        router.push('/dashboard')
+        router.push(callbackUrl)
         router.refresh()
       }
     } catch (err) {
