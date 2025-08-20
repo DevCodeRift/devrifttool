@@ -301,6 +301,32 @@ export default function WarSimulatorV2() {
     }
   }
 
+  const callCleanup = async () => {
+    try {
+      setLoading(true)
+      setMessage('Running cleanup...')
+      
+      const response = await fetch('/api/wars-v2/cleanup', {
+        method: 'POST'
+      })
+      
+      if (response.ok) {
+        const result = await response.json()
+        setMessage(`Cleanup completed: ${result.deletedLobbies} stale lobbies and ${result.deletedWars} inactive wars removed`)
+        // Refresh the wars list
+        loadWars()
+      } else {
+        const error = await response.json()
+        setMessage(`Cleanup failed: ${error.error}`)
+      }
+    } catch (error) {
+      console.error('Error calling cleanup:', error)
+      setMessage('Error running cleanup')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const resetForm = () => {
     setFormData({
       warName: '',
@@ -752,7 +778,26 @@ export default function WarSimulatorV2() {
 
           {/* Active Wars */}
           <div className="max-w-5xl mx-auto">
-            <h2 className="text-3xl font-bold text-white mb-8 text-center">🎯 Active War Rooms</h2>
+            <div className="flex justify-between items-center mb-8">
+              <h2 className="text-3xl font-bold text-white">🎯 Active War Rooms</h2>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => window.open('/war-history', '_blank')}
+                  className="bg-purple-600 hover:bg-purple-500 text-white px-4 py-2 rounded-lg 
+                           transition-colors duration-200 font-medium flex items-center gap-2"
+                >
+                  📊 War History
+                </button>
+                <button
+                  onClick={callCleanup}
+                  disabled={loading}
+                  className="bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded-lg 
+                           transition-colors duration-200 font-medium disabled:opacity-50 flex items-center gap-2"
+                >
+                  🧹 Cleanup
+                </button>
+              </div>
+            </div>
             {wars.length === 0 ? (
               <div className="text-center py-16">
                 <div className="text-6xl mb-4">⚔️</div>
@@ -1056,6 +1101,13 @@ export default function WarSimulatorV2() {
               </div>
             </div>
             <div className="flex gap-3">
+              <button
+                onClick={() => window.open('/war-history', '_blank')}
+                className="bg-purple-600 hover:bg-purple-500 text-white px-6 py-2 rounded-lg 
+                         transition-colors duration-200 font-medium flex items-center gap-2"
+              >
+                📊 War History
+              </button>
               <button
                 onClick={() => setCurrentWar(null)}
                 className="bg-slate-700 hover:bg-slate-600 text-white px-6 py-2 rounded-lg 
