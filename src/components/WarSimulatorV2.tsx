@@ -642,7 +642,7 @@ export default function WarSimulatorV2() {
                       <h3 className="text-lg font-medium text-white mb-4">Your Nation</h3>
                       <div className="grid md:grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-sm font-medium text-slate-300 mb-2">🎭 Player Name</label>
+                          <label className="block text-sm font-medium text-slate-300 mb-2">Player Name</label>
                           <input
                             type="text"
                             value={formData.playerName}
@@ -789,95 +789,100 @@ export default function WarSimulatorV2() {
           </div>
 
           {/* Active Wars */}
-          <div className="max-w-5xl mx-auto">
-            <div className="flex justify-between items-center mb-8">
-              <h2 className="text-3xl font-bold text-white">Active War Rooms</h2>
+          <div className="max-w-7xl mx-auto">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-white">Active War Rooms</h2>
               <div className="flex gap-3">
                 <button
                   onClick={() => window.open('/war-history', '_blank')}
-                  className="bg-purple-600 hover:bg-purple-500 text-white px-4 py-2 rounded-lg 
-                           transition-colors duration-200 font-medium flex items-center gap-2"
+                  className="bg-purple-600 hover:bg-purple-500 text-white px-3 py-1.5 rounded-lg 
+                           transition-colors duration-200 font-medium flex items-center gap-2 text-sm"
                 >
                   War History
                 </button>
                 <button
                   onClick={callCleanup}
                   disabled={loading}
-                  className="bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded-lg 
-                           transition-colors duration-200 font-medium disabled:opacity-50 flex items-center gap-2"
+                  className="bg-red-600 hover:bg-red-500 text-white px-3 py-1.5 rounded-lg 
+                           transition-colors duration-200 font-medium disabled:opacity-50 flex items-center gap-2 text-sm"
                 >
                   Cleanup
                 </button>
               </div>
             </div>
             {wars.length === 0 ? (
-              <div className="text-center py-16">
-                <p className="text-slate-300 text-xl">No active wars found</p>
-                <p className="text-slate-400 mt-2">Create the first war room to get started!</p>
+              <div className="text-center py-12">
+                <p className="text-slate-300 text-lg">No active wars found</p>
+                <p className="text-slate-400 mt-1">Create the first war room to get started!</p>
               </div>
             ) : (
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {wars.map(war => (
-                  <div key={war.id} className="bg-slate-800/60 backdrop-blur-sm rounded-xl p-6 border border-slate-600/30 
-                                               hover:border-blue-500/50 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/10">
-                    {/* War Header */}
-                    <div className="mb-4">
-                      <h3 className="text-xl font-bold text-white mb-2">{war.name}</h3>
-                      <div className="flex flex-wrap gap-2 text-sm">
-                        <span className={`px-3 py-1 rounded-full font-medium ${
-                          war.status === 'active' ? 'bg-green-500/20 text-green-300 border border-green-500/30' :
-                          war.status === 'waiting' ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30' :
-                          'bg-gray-500/20 text-gray-300 border border-gray-500/30'
+                  <div key={war.id} className="bg-slate-800/60 backdrop-blur-sm rounded-lg p-4 border border-slate-600/30 
+                                               hover:border-blue-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10">
+                    {/* War Header - Compact */}
+                    <div className="mb-3">
+                      <h3 className="text-lg font-bold text-white mb-1 truncate">{war.name}</h3>
+                      <div className="flex flex-wrap gap-1 text-xs">
+                        <span className={`px-2 py-0.5 rounded-full font-medium ${
+                          war.status === 'active' ? 'bg-green-500/20 text-green-300' :
+                          war.status === 'waiting' ? 'bg-yellow-500/20 text-yellow-300' :
+                          'bg-gray-500/20 text-gray-300'
                         }`}>
                           {war.status === 'active' ? 'Active' :
-                           war.status === 'waiting' ? 'Waiting' : 'Completed'}
+                           war.status === 'waiting' ? 'Waiting' : 'Complete'}
                         </span>
-                        <span className="bg-blue-500/20 text-blue-300 px-3 py-1 rounded-full border border-blue-500/30">
+                        <span className="bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded-full">
                           {war.currentPlayers}/{war.maxPlayers}
                         </span>
-                        <span className="bg-purple-500/20 text-purple-300 px-3 py-1 rounded-full border border-purple-500/30">
-                          Turn {war.currentTurn}
+                        <span className="bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded-full">
+                          T{war.currentTurn}
                         </span>
                       </div>
                     </div>
 
-                    {/* Participants */}
-                    <div className="mb-4">
-                      <p className="text-slate-300 font-medium mb-2">🏛️ Nations:</p>
-                      <div className="space-y-1 max-h-24 overflow-y-auto">
-                        {war.participants.map(p => (
-                          <div key={p.id} className="text-xs bg-slate-700/50 px-3 py-1 rounded-lg flex justify-between items-center">
-                            <span className="text-slate-200">
-                              {p.playerName} ({p.name})
+                    {/* Participants - Compact */}
+                    <div className="mb-3">
+                      <div className="text-xs text-slate-400 mb-1">Nations ({war.participants.length}):</div>
+                      <div className="space-y-0.5 max-h-16 overflow-y-auto">
+                        {war.participants.slice(0, 3).map(p => (
+                          <div key={p.id} className="text-xs bg-slate-700/30 px-2 py-0.5 rounded flex justify-between items-center">
+                            <span className="text-slate-200 truncate mr-2">
+                              {p.playerName}
                             </span>
-                            <div className="flex items-center gap-1">
-                              <span className="text-red-400">❤️ {p.resistance}</span>
-                              {p.isSpectator && <span className="text-gray-400">👁️</span>}
+                            <div className="flex items-center gap-1 flex-shrink-0">
+                              <span className="text-red-400">{p.resistance}</span>
+                              {p.isSpectator && <span className="text-gray-400">👁</span>}
                               {p.isEliminated && <span className="text-red-500">💀</span>}
                             </div>
                           </div>
                         ))}
+                        {war.participants.length > 3 && (
+                          <div className="text-xs text-slate-400 text-center">
+                            +{war.participants.length - 3} more...
+                          </div>
+                        )}
                       </div>
                     </div>
 
-                    {/* Action Buttons */}
-                    <div className="flex gap-2 flex-wrap">
+                    {/* Action Buttons - Compact */}
+                    <div className="flex gap-1">
                       <button
                         onClick={() => loadWar(war.id)}
-                        className="flex-1 bg-blue-600 hover:bg-blue-500 text-white px-3 py-2 rounded-lg 
-                                 transition-colors duration-200 font-medium text-sm"
+                        className="flex-1 bg-blue-600 hover:bg-blue-500 text-white px-2 py-1.5 rounded 
+                                 transition-colors duration-200 font-medium text-xs"
                       >
-                        👁️ View
+                        View
                       </button>
                       {war.status === 'waiting' && (
                         <>
                           <button
                             onClick={() => setShowJoinForm(war.id)}
                             disabled={loading}
-                            className="flex-1 bg-green-600 hover:bg-green-500 text-white px-3 py-2 rounded-lg 
-                                     transition-colors duration-200 disabled:opacity-50 font-medium text-sm"
+                            className="flex-1 bg-green-600 hover:bg-green-500 text-white px-2 py-1.5 rounded 
+                                     transition-colors duration-200 disabled:opacity-50 font-medium text-xs"
                           >
-                            ⚔️ Join
+                            Join
                           </button>
                           <button
                             onClick={() => {
@@ -885,10 +890,10 @@ export default function WarSimulatorV2() {
                               setShowJoinForm(war.id)
                             }}
                             disabled={loading}
-                            className="flex-1 bg-gray-600 hover:bg-gray-500 text-white px-3 py-2 rounded-lg 
-                                     transition-colors duration-200 disabled:opacity-50 font-medium text-sm"
+                            className="flex-1 bg-gray-600 hover:bg-gray-500 text-white px-2 py-1.5 rounded 
+                                     transition-colors duration-200 disabled:opacity-50 font-medium text-xs"
                           >
-                            👁️ Spectate
+                            Watch
                           </button>
                         </>
                       )}
@@ -899,10 +904,10 @@ export default function WarSimulatorV2() {
                             setShowJoinForm(war.id)
                           }}
                           disabled={loading}
-                          className="flex-1 bg-gray-600 hover:bg-gray-500 text-white px-3 py-2 rounded-lg 
-                                   transition-colors duration-200 disabled:opacity-50 font-medium text-sm"
+                          className="flex-1 bg-gray-600 hover:bg-gray-500 text-white px-2 py-1.5 rounded 
+                                   transition-colors duration-200 disabled:opacity-50 font-medium text-xs"
                         >
-                          👁️ Spectate
+                          Watch
                         </button>
                       )}
                     </div>
@@ -918,7 +923,7 @@ export default function WarSimulatorV2() {
               <div className="bg-slate-800 rounded-xl p-8 max-w-md w-full border border-slate-600">
                 <div className="flex justify-between items-center mb-6">
                   <h2 className="text-2xl font-bold text-white">
-                    {formData.isSpectator ? '👁️ Join as Spectator' : '⚔️ Join War'}
+                    {formData.isSpectator ? 'Join as Spectator' : 'Join War'}
                   </h2>
                   <button
                     onClick={resetForm}
@@ -930,7 +935,7 @@ export default function WarSimulatorV2() {
 
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-2">🎭 Player Name</label>
+                    <label className="block text-sm font-medium text-slate-300 mb-2">Player Name</label>
                     <input
                       type="text"
                       value={formData.playerName}
@@ -974,7 +979,7 @@ export default function WarSimulatorV2() {
                       
                       {/* Military Type Selection */}
                       <div className="p-3 bg-slate-800/50 border border-slate-600/30 rounded-lg">
-                        <label className="block text-sm font-medium text-slate-300 mb-2">⚔️ Military Configuration</label>
+                        <label className="block text-sm font-medium text-slate-300 mb-2">Military Configuration</label>
                         <div className="flex gap-2">
                           <button
                             type="button"
@@ -1039,7 +1044,7 @@ export default function WarSimulatorV2() {
                   ) : null}
 
                   <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-2">🏛️ Nation Name</label>
+                    <label className="block text-sm font-medium text-slate-300 mb-2">Nation Name</label>
                     <input
                       type="text"
                       value={formData.nationName}
@@ -1065,7 +1070,7 @@ export default function WarSimulatorV2() {
                                text-white px-4 py-2 rounded-lg transition-all duration-200 disabled:opacity-50 
                                disabled:cursor-not-allowed font-medium shadow-lg"
                     >
-                      {loading ? '⚡ Joining...' : formData.isSpectator ? '👁️ Spectate' : '⚔️ Join War'}
+                      {loading ? 'Joining...' : formData.isSpectator ? 'Spectate' : 'Join War'}
                     </button>
                   </div>
                 </div>
