@@ -3,6 +3,14 @@
 import { useState, useEffect } from 'react'
 import { War, Nation, ActionType, ExecuteActionRequest } from '@/types/war-v2'
 
+// Type for nation data from P&W API
+interface NationData {
+  nation_name: string
+  leader_name: string
+  cities: number
+  score: number
+}
+
 export default function WarSimulatorV2() {
   const [wars, setWars] = useState<War[]>([])
   const [currentWar, setCurrentWar] = useState<War | null>(null)
@@ -30,7 +38,7 @@ export default function WarSimulatorV2() {
     nationId: '',
     isSpectator: false
   })
-  const [nationData, setNationData] = useState<any>(null)
+  const [nationData, setNationData] = useState<NationData | null>(null)
   const [validatingNation, setValidatingNation] = useState(false)
 
   const loadWars = async () => {
