@@ -9,6 +9,10 @@ interface NationData {
   leader_name: string
   cities: number
   score: number
+  soldiers: number
+  tanks: number
+  aircraft: number
+  ships: number
 }
 
 export default function WarSimulatorV2() {
@@ -40,6 +44,7 @@ export default function WarSimulatorV2() {
   })
   const [nationData, setNationData] = useState<NationData | null>(null)
   const [validatingNation, setValidatingNation] = useState(false)
+  const [militaryType, setMilitaryType] = useState<'current' | 'maximum'>('current')
 
   const loadWars = async () => {
     try {
@@ -136,6 +141,36 @@ export default function WarSimulatorV2() {
     setValidatingNation(false)
   }
 
+  const calculateMaximumMilitary = (cities: number) => {
+    // Maximum military assuming 5 barracks, 5 factories, 5 hangars, 3 drydocks per city
+    const maxSoldiers = cities * 5 * 3000  // 5 barracks * 3000 soldiers each
+    const maxTanks = cities * 5 * 250      // 5 factories * 250 tanks each  
+    const maxAircraft = cities * 5 * 15    // 5 hangars * 15 aircraft each
+    const maxShips = cities * 3 * 5        // 3 drydocks * 5 ships each
+    
+    return {
+      soldiers: maxSoldiers,
+      tanks: maxTanks,
+      aircraft: maxAircraft,
+      ships: maxShips
+    }
+  }
+
+  const getMilitaryForDisplay = () => {
+    if (!nationData) return null
+    
+    if (militaryType === 'current') {
+      return {
+        soldiers: nationData.soldiers,
+        tanks: nationData.tanks,
+        aircraft: nationData.aircraft,
+        ships: nationData.ships
+      }
+    } else {
+      return calculateMaximumMilitary(nationData.cities)
+    }
+  }
+
   const resetForm = () => {
     setFormData({
       warName: '',
@@ -159,6 +194,9 @@ export default function WarSimulatorV2() {
 
     setLoading(true)
     try {
+      // Get the military values based on user selection
+      const military = getMilitaryForDisplay()
+      
       const response = await fetch('/api/wars-v2', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -169,7 +207,8 @@ export default function WarSimulatorV2() {
           turnDuration: formData.turnDuration,
           playerName: formData.playerName,
           nationName: formData.nationName,
-          nationId: formData.nationId || undefined
+          nationId: formData.nationId || undefined,
+          customMilitary: military // Send the selected military values
         })
       })
 
@@ -198,6 +237,9 @@ export default function WarSimulatorV2() {
 
     setLoading(true)
     try {
+      // Get the military values based on user selection
+      const military = getMilitaryForDisplay()
+      
       const response = await fetch('/api/wars-v2', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -207,7 +249,8 @@ export default function WarSimulatorV2() {
           playerName: formData.playerName,
           nationName: formData.nationName,
           nationId: formData.nationId || undefined,
-          asSpectator
+          asSpectator,
+          customMilitary: military // Send the selected military values
         })
       })
 
@@ -412,10 +455,72 @@ export default function WarSimulatorV2() {
                       </div>
                       
                       {nationData ? (
-                        <div className="mt-4 p-3 bg-green-500/20 border border-green-500/30 rounded-lg">
-                          <p className="text-green-300 font-medium">✅ Nation Found: {nationData.nation_name}</p>
-                          <p className="text-green-200 text-sm">Leader: {nationData.leader_name}</p>
-                          <p className="text-green-200 text-sm">Cities: {nationData.cities} | Score: {nationData.score?.toLocaleString()}</p>
+                        <div className="mt-4 space-y-3">
+                          <div className="p-3 bg-green-500/20 border border-green-500/30 rounded-lg">
+                            <p className="text-green-300 font-medium">✅ Nation Found: {nationData.nation_name}</p>
+                            <p className="text-green-200 text-sm">Leader: {nationData.leader_name}</p>
+                            <p className="text-green-200 text-sm">Cities: {nationData.cities} | Score: {nationData.score?.toLocaleString()}</p>
+                          </div>
+                          
+                          {/* Military Type Selection */}
+                          <div className="p-3 bg-slate-800/50 border border-slate-600/30 rounded-lg">
+                            <label className="block text-sm font-medium text-slate-300 mb-2">⚔️ Military Configuration</label>
+                            <div className="flex gap-2">
+                              <button
+                                type="button"
+                                onClick={() => setMilitaryType('current')}
+                                className={`px-3 py-2 rounded text-sm font-medium transition-colors ${
+                                  militaryType === 'current'
+                                    ? 'bg-blue-600 text-white'
+                                    : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                                }`}
+                              >
+                                Current Military
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setMilitaryType('maximum')}
+                                className={`px-3 py-2 rounded text-sm font-medium transition-colors ${
+                                  militaryType === 'maximum'
+                                    ? 'bg-blue-600 text-white'
+                                    : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                                }`}
+                              >
+                                Maximum Military
+                              </button>
+                            </div>
+                            
+                            {/* Military Display */}
+                            {(() => {
+                              const military = getMilitaryForDisplay()
+                              return military ? (
+                                <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
+                                  <div className="flex justify-between">
+                                    <span className="text-slate-400">🪖 Soldiers:</span>
+                                    <span className="text-green-400 font-medium">{military.soldiers.toLocaleString()}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-slate-400">🚗 Tanks:</span>
+                                    <span className="text-blue-400 font-medium">{military.tanks.toLocaleString()}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-slate-400">✈️ Aircraft:</span>
+                                    <span className="text-purple-400 font-medium">{military.aircraft.toLocaleString()}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-slate-400">🚢 Ships:</span>
+                                    <span className="text-cyan-400 font-medium">{military.ships.toLocaleString()}</span>
+                                  </div>
+                                </div>
+                              ) : null
+                            })()}
+                            
+                            {militaryType === 'maximum' && (
+                              <p className="mt-2 text-xs text-slate-400">
+                                * Assumes 5 barracks, 5 factories, 5 hangars, 3 drydocks per city
+                              </p>
+                            )}
+                          </div>
                         </div>
                       ) : formData.nationId ? (
                         <div className="mt-4 p-3 bg-red-500/20 border border-red-500/30 rounded-lg">
@@ -619,10 +724,72 @@ export default function WarSimulatorV2() {
                   </div>
 
                   {nationData ? (
-                    <div className="p-3 bg-green-500/20 border border-green-500/30 rounded-lg">
-                      <p className="text-green-300 font-medium">✅ Nation Found: {nationData.nation_name}</p>
-                      <p className="text-green-200 text-sm">Leader: {nationData.leader_name}</p>
-                      <p className="text-green-200 text-sm">Cities: {nationData.cities} | Score: {nationData.score?.toLocaleString()}</p>
+                    <div className="space-y-3">
+                      <div className="p-3 bg-green-500/20 border border-green-500/30 rounded-lg">
+                        <p className="text-green-300 font-medium">✅ Nation Found: {nationData.nation_name}</p>
+                        <p className="text-green-200 text-sm">Leader: {nationData.leader_name}</p>
+                        <p className="text-green-200 text-sm">Cities: {nationData.cities} | Score: {nationData.score?.toLocaleString()}</p>
+                      </div>
+                      
+                      {/* Military Type Selection */}
+                      <div className="p-3 bg-slate-800/50 border border-slate-600/30 rounded-lg">
+                        <label className="block text-sm font-medium text-slate-300 mb-2">⚔️ Military Configuration</label>
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setMilitaryType('current')}
+                            className={`px-3 py-2 rounded text-sm font-medium transition-colors ${
+                              militaryType === 'current'
+                                ? 'bg-blue-600 text-white'
+                                : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                            }`}
+                          >
+                            Current Military
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setMilitaryType('maximum')}
+                            className={`px-3 py-2 rounded text-sm font-medium transition-colors ${
+                              militaryType === 'maximum'
+                                ? 'bg-blue-600 text-white'
+                                : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                            }`}
+                          >
+                            Maximum Military
+                          </button>
+                        </div>
+                        
+                        {/* Military Display */}
+                        {(() => {
+                          const military = getMilitaryForDisplay()
+                          return military ? (
+                            <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
+                              <div className="flex justify-between">
+                                <span className="text-slate-400">🪖 Soldiers:</span>
+                                <span className="text-green-400 font-medium">{military.soldiers.toLocaleString()}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-slate-400">🚗 Tanks:</span>
+                                <span className="text-blue-400 font-medium">{military.tanks.toLocaleString()}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-slate-400">✈️ Aircraft:</span>
+                                <span className="text-purple-400 font-medium">{military.aircraft.toLocaleString()}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-slate-400">🚢 Ships:</span>
+                                <span className="text-cyan-400 font-medium">{military.ships.toLocaleString()}</span>
+                              </div>
+                            </div>
+                          ) : null
+                        })()}
+                        
+                        {militaryType === 'maximum' && (
+                          <p className="mt-2 text-xs text-slate-400">
+                            * Assumes 5 barracks, 5 factories, 5 hangars, 3 drydocks per city
+                          </p>
+                        )}
+                      </div>
                     </div>
                   ) : formData.nationId ? (
                     <div className="p-3 bg-red-500/20 border border-red-500/30 rounded-lg">

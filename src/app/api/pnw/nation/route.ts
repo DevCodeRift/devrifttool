@@ -49,7 +49,11 @@ export async function GET(request: NextRequest) {
       nation_name: nation.nation_name,
       leader_name: nation.leader_name,
       cities: nation.num_cities,
-      score: nation.score
+      score: nation.score,
+      soldiers: nation.soldiers,
+      tanks: nation.tanks,
+      aircraft: nation.aircraft,
+      ships: nation.ships
     }
 
     return NextResponse.json(transformedNation)

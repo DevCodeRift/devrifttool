@@ -196,7 +196,7 @@ export async function POST(request: NextRequest) {
     const action = body.action || 'create' // 'create' or 'join'
 
     if (action === 'create') {
-      const { name, maxPlayers, turnDuration, playerName, nationName, nationId }: CreateWarRequest = body
+      const { name, maxPlayers, turnDuration, playerName, nationName, nationId, customMilitary }: CreateWarRequest = body
 
       // Validate input
       if (!name || !playerName || !nationName) {
@@ -227,12 +227,25 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Failed to create war' }, { status: 500 })
       }
 
-      // Calculate max military based on default cities (10)
-      const cities = 10
-      const maxSoldiers = cities * 5 * 3000
-      const maxTanks = cities * 5 * 250
-      const maxAircraft = cities * 5 * 15
-      const maxShips = cities * 3 * 5
+      // Use custom military if provided, otherwise calculate defaults
+      let militaryValues
+      if (customMilitary) {
+        militaryValues = customMilitary
+      } else {
+        // Calculate max military based on default cities (10)
+        const cities = 10
+        const maxSoldiers = cities * 5 * 3000
+        const maxTanks = cities * 5 * 250
+        const maxAircraft = cities * 5 * 15
+        const maxShips = cities * 3 * 5
+        
+        militaryValues = {
+          soldiers: Math.floor(maxSoldiers * 0.8), // Start with 80% of max
+          tanks: Math.floor(maxTanks * 0.8),
+          aircraft: Math.floor(maxAircraft * 0.8),
+          ships: Math.floor(maxShips * 0.8)
+        }
+      }
 
       // Add creator as first participant
       const { data: participant, error: participantError } = await supabase
@@ -243,11 +256,11 @@ export async function POST(request: NextRequest) {
           player_name: playerName,
           nation_name: nationName,
           nation_id: nationId,
-          soldiers: Math.floor(maxSoldiers * 0.8), // Start with 80% of max
-          tanks: Math.floor(maxTanks * 0.8),
-          aircraft: Math.floor(maxAircraft * 0.8),
-          ships: Math.floor(maxShips * 0.8),
-          cities,
+          soldiers: militaryValues.soldiers,
+          tanks: militaryValues.tanks,
+          aircraft: militaryValues.aircraft,
+          ships: militaryValues.ships,
+          cities: 10,
           resistance: 100,
           current_maps: 6,
           max_maps: 12,
@@ -276,7 +289,7 @@ export async function POST(request: NextRequest) {
       })
 
     } else if (action === 'join') {
-      const { warId, playerName, nationName, nationId, asSpectator }: JoinWarRequest = body
+      const { warId, playerName, nationName, nationId, asSpectator, customMilitary }: JoinWarRequest = body
 
       // Validate input
       if (!warId || !playerName || !nationName) {
@@ -302,12 +315,33 @@ export async function POST(request: NextRequest) {
       // Generate player ID
       const playerId = `player_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 
-      // Calculate military for new participant
-      const cities = 10
-      const maxSoldiers = cities * 5 * 3000
-      const maxTanks = cities * 5 * 250
-      const maxAircraft = cities * 5 * 15
-      const maxShips = cities * 3 * 5
+      // Use custom military if provided, otherwise calculate defaults
+      let militaryValues
+      if (customMilitary && !asSpectator) {
+        militaryValues = customMilitary
+      } else if (!asSpectator) {
+        // Calculate military for new participant
+        const cities = 10
+        const maxSoldiers = cities * 5 * 3000
+        const maxTanks = cities * 5 * 250
+        const maxAircraft = cities * 5 * 15
+        const maxShips = cities * 3 * 5
+        
+        militaryValues = {
+          soldiers: Math.floor(maxSoldiers * 0.8),
+          tanks: Math.floor(maxTanks * 0.8),
+          aircraft: Math.floor(maxAircraft * 0.8),
+          ships: Math.floor(maxShips * 0.8)
+        }
+      } else {
+        // Spectator has no military
+        militaryValues = {
+          soldiers: 0,
+          tanks: 0,
+          aircraft: 0,
+          ships: 0
+        }
+      }
 
       // Add participant
       const { data: participant, error: participantError } = await supabase
@@ -318,11 +352,11 @@ export async function POST(request: NextRequest) {
           player_name: playerName,
           nation_name: nationName,
           nation_id: nationId,
-          soldiers: asSpectator ? 0 : Math.floor(maxSoldiers * 0.8),
-          tanks: asSpectator ? 0 : Math.floor(maxTanks * 0.8),
-          aircraft: asSpectator ? 0 : Math.floor(maxAircraft * 0.8),
-          ships: asSpectator ? 0 : Math.floor(maxShips * 0.8),
-          cities: asSpectator ? 0 : cities,
+          soldiers: militaryValues.soldiers,
+          tanks: militaryValues.tanks,
+          aircraft: militaryValues.aircraft,
+          ships: militaryValues.ships,
+          cities: asSpectator ? 0 : 10,
           resistance: asSpectator ? 0 : 100,
           current_maps: asSpectator ? 0 : 6,
           max_maps: asSpectator ? 0 : 12,

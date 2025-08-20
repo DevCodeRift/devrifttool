@@ -129,6 +129,12 @@ export interface CreateWarRequest {
   playerName: string
   nationName: string
   nationId?: number // P&W nation ID if importing
+  customMilitary?: {
+    soldiers: number
+    tanks: number
+    aircraft: number
+    ships: number
+  }
 }
 
 export interface JoinWarRequest {
@@ -137,6 +143,12 @@ export interface JoinWarRequest {
   nationName: string
   nationId?: number
   asSpectator?: boolean
+  customMilitary?: {
+    soldiers: number
+    tanks: number
+    aircraft: number
+    ships: number
+  }
 }
 
 export interface ExecuteActionRequest {
