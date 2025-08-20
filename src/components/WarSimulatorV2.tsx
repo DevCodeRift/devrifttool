@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useSession } from 'next-auth/react'
+import { useSession, signOut } from 'next-auth/react'
 import { War, Nation, ActionType, ExecuteActionRequest } from '@/types/war-v2'
 
 // Type for nation data from P&W API
@@ -382,6 +382,55 @@ export default function WarSimulatorV2() {
               Experience realistic warfare with exact P&W battle mechanics
             </p>
           </div>
+
+          {/* Authentication Section */}
+          {!session && (
+            <div className="mb-12">
+              <div className="bg-slate-800/60 backdrop-blur-sm rounded-xl p-8 max-w-md mx-auto border border-slate-600/30">
+                <div className="text-center">
+                  <h2 className="text-2xl font-bold text-white mb-4">🔐 Authentication Required</h2>
+                  <p className="text-slate-300 mb-6">Sign in to join wars and track your progress</p>
+                  <div className="space-y-4">
+                    <a
+                      href="/auth/signin"
+                      className="block w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 
+                               text-white font-bold px-6 py-3 rounded-lg transition-all duration-200 
+                               shadow-lg hover:shadow-xl transform hover:scale-105 text-center"
+                    >
+                      🚪 Sign In
+                    </a>
+                    <a
+                      href="/auth/signup"
+                      className="block w-full bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-500 hover:to-slate-600 
+                               text-white font-bold px-6 py-3 rounded-lg transition-all duration-200 
+                               shadow-lg hover:shadow-xl transform hover:scale-105 text-center border border-slate-500"
+                    >
+                      📝 Sign Up
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* User Info Section */}
+          {session && (
+            <div className="mb-8">
+              <div className="bg-slate-800/40 backdrop-blur-sm rounded-xl p-4 max-w-md mx-auto border border-slate-600/20">
+                <div className="text-center">
+                  <p className="text-slate-300">
+                    Welcome, <span className="text-white font-medium">{session.user?.name || session.user?.email}</span>
+                  </p>
+                  <button
+                    onClick={() => signOut()}
+                    className="mt-2 text-sm text-slate-400 hover:text-red-400 transition-colors"
+                  >
+                    Sign out
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
           
           {/* Message Display */}
           {message && (
@@ -460,10 +509,10 @@ export default function WarSimulatorV2() {
                           <input
                             type="text"
                             value={formData.playerName}
-                            onChange={(e) => setFormData(prev => ({ ...prev, playerName: e.target.value }))}
-                            className="w-full bg-slate-600 border border-slate-500 rounded-lg px-3 py-2 text-white 
-                                     focus:border-blue-400 focus:outline-none transition-colors"
-                            placeholder="Your name..."
+                            readOnly
+                            className="w-full bg-slate-600/50 border border-slate-500 rounded-lg px-3 py-2 text-white 
+                                     cursor-not-allowed opacity-75"
+                            placeholder="Sign in to auto-fill..."
                           />
                         </div>
                         <div>
@@ -730,10 +779,10 @@ export default function WarSimulatorV2() {
                     <input
                       type="text"
                       value={formData.playerName}
-                      onChange={(e) => setFormData(prev => ({ ...prev, playerName: e.target.value }))}
-                      className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white 
-                               focus:border-blue-400 focus:outline-none transition-colors"
-                      placeholder="Your name..."
+                      readOnly
+                      className="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-3 py-2 text-white 
+                               cursor-not-allowed opacity-75"
+                      placeholder="Sign in to auto-fill..."
                     />
                   </div>
                   

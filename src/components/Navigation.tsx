@@ -47,7 +47,7 @@ export default function Navigation() {
                   href="/war-simulator"
                   className="text-gray-300 hover:text-green-400 px-3 py-2 text-sm font-medium transition-colors"
                 >
-                  War Simulator
+                  War Simulator V2
                 </Link>
                 <span className="text-gray-400 text-sm font-mono">
                   {session.user?.name}
