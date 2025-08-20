@@ -204,319 +204,481 @@ export default function WarSimulatorV2() {
 
   if (!currentWar) {
     return (
-      <div className="p-6 max-w-6xl mx-auto">
-        <h1 className="text-3xl font-bold mb-6">Politics & War Simulator V2</h1>
-        
-        {message && (
-          <div className="mb-4 p-3 bg-blue-100 border border-blue-300 rounded">
-            {message}
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
+        <div className="container mx-auto px-4 py-8">
+          {/* Header */}
+          <div className="text-center mb-12">
+            <h1 className="text-5xl font-bold text-white mb-4 tracking-wider">
+              🌍 Politics & War Simulator V2
+            </h1>
+            <p className="text-blue-200 text-lg">
+              Experience realistic warfare with exact P&W battle mechanics
+            </p>
           </div>
-        )}
+          
+          {/* Message Display */}
+          {message && (
+            <div className="mb-8 max-w-2xl mx-auto">
+              <div className="bg-gradient-to-r from-blue-500/20 to-cyan-500/20 border border-blue-400/30 rounded-lg p-4 backdrop-blur-sm">
+                <p className="text-blue-100 text-center font-medium">{message}</p>
+              </div>
+            </div>
+          )}
 
-        <div className="mb-6">
-          <button
-            onClick={createWar}
-            disabled={loading}
-            className="bg-green-600 text-white px-4 py-2 rounded mr-4 disabled:opacity-50"
-          >
-            Create New War
-          </button>
-        </div>
+          {/* Create War Section */}
+          <div className="mb-12 text-center">
+            <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-8 max-w-md mx-auto border border-slate-600/30">
+              <h2 className="text-2xl font-bold text-white mb-4">Start New War</h2>
+              <p className="text-slate-300 mb-6">Create a multiplayer war room for unlimited players</p>
+              <button
+                onClick={createWar}
+                disabled={loading}
+                className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 
+                         text-white font-bold px-8 py-3 rounded-lg transition-all duration-200 
+                         disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl
+                         transform hover:scale-105"
+              >
+                {loading ? '⚡ Creating...' : '🚀 Create War Room'}
+              </button>
+            </div>
+          </div>
 
-        <div className="grid gap-4">
-          <h2 className="text-xl font-bold">Active Wars</h2>
-          {wars.length === 0 ? (
-            <p className="text-gray-600">No active wars found</p>
-          ) : (
-            wars.map(war => (
-              <div key={war.id} className="border border-gray-300 rounded p-4">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h3 className="text-lg font-semibold">{war.name}</h3>
-                    <p className="text-sm text-gray-600">
-                      Status: {war.status} | Players: {war.currentPlayers}/{war.maxPlayers} | Turn: {war.currentTurn}
-                    </p>
-                    <div className="mt-2">
-                      <p className="text-sm font-medium">Participants:</p>
-                      {war.participants.map(p => (
-                        <span key={p.id} className="text-xs bg-gray-200 px-2 py-1 rounded mr-2">
-                          {p.playerName} ({p.name}) - Resistance: {p.resistance}
-                          {p.isSpectator && ' (Spectator)'}
-                          {p.isEliminated && ' (Eliminated)'}
+          {/* Active Wars */}
+          <div className="max-w-5xl mx-auto">
+            <h2 className="text-3xl font-bold text-white mb-8 text-center">🎯 Active War Rooms</h2>
+            {wars.length === 0 ? (
+              <div className="text-center py-16">
+                <div className="text-6xl mb-4">⚔️</div>
+                <p className="text-slate-300 text-xl">No active wars found</p>
+                <p className="text-slate-400 mt-2">Create the first war room to get started!</p>
+              </div>
+            ) : (
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {wars.map(war => (
+                  <div key={war.id} className="bg-slate-800/60 backdrop-blur-sm rounded-xl p-6 border border-slate-600/30 
+                                               hover:border-blue-500/50 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/10">
+                    {/* War Header */}
+                    <div className="mb-4">
+                      <h3 className="text-xl font-bold text-white mb-2">{war.name}</h3>
+                      <div className="flex flex-wrap gap-2 text-sm">
+                        <span className={`px-3 py-1 rounded-full font-medium ${
+                          war.status === 'active' ? 'bg-green-500/20 text-green-300 border border-green-500/30' :
+                          war.status === 'waiting' ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30' :
+                          'bg-gray-500/20 text-gray-300 border border-gray-500/30'
+                        }`}>
+                          {war.status === 'active' ? '🔥 Active' :
+                           war.status === 'waiting' ? '⏳ Waiting' : '✅ Completed'}
                         </span>
-                      ))}
+                        <span className="bg-blue-500/20 text-blue-300 px-3 py-1 rounded-full border border-blue-500/30">
+                          👥 {war.currentPlayers}/{war.maxPlayers}
+                        </span>
+                        <span className="bg-purple-500/20 text-purple-300 px-3 py-1 rounded-full border border-purple-500/30">
+                          🎯 Turn {war.currentTurn}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => loadWar(war.id)}
-                      className="bg-blue-600 text-white px-3 py-1 rounded text-sm"
-                    >
-                      View
-                    </button>
-                    {war.status === 'waiting' && (
-                      <>
-                        <button
-                          onClick={() => joinWar(war.id)}
-                          disabled={loading}
-                          className="bg-green-600 text-white px-3 py-1 rounded text-sm disabled:opacity-50"
-                        >
-                          Join
-                        </button>
+
+                    {/* Participants */}
+                    <div className="mb-4">
+                      <p className="text-slate-300 font-medium mb-2">🏛️ Nations:</p>
+                      <div className="space-y-1 max-h-24 overflow-y-auto">
+                        {war.participants.map(p => (
+                          <div key={p.id} className="text-xs bg-slate-700/50 px-3 py-1 rounded-lg flex justify-between items-center">
+                            <span className="text-slate-200">
+                              {p.playerName} ({p.name})
+                            </span>
+                            <div className="flex items-center gap-1">
+                              <span className="text-red-400">❤️ {p.resistance}</span>
+                              {p.isSpectator && <span className="text-gray-400">👁️</span>}
+                              {p.isEliminated && <span className="text-red-500">💀</span>}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex gap-2 flex-wrap">
+                      <button
+                        onClick={() => loadWar(war.id)}
+                        className="flex-1 bg-blue-600 hover:bg-blue-500 text-white px-3 py-2 rounded-lg 
+                                 transition-colors duration-200 font-medium text-sm"
+                      >
+                        👁️ View
+                      </button>
+                      {war.status === 'waiting' && (
+                        <>
+                          <button
+                            onClick={() => joinWar(war.id)}
+                            disabled={loading}
+                            className="flex-1 bg-green-600 hover:bg-green-500 text-white px-3 py-2 rounded-lg 
+                                     transition-colors duration-200 disabled:opacity-50 font-medium text-sm"
+                          >
+                            ⚔️ Join
+                          </button>
+                          <button
+                            onClick={() => joinWar(war.id, true)}
+                            disabled={loading}
+                            className="flex-1 bg-gray-600 hover:bg-gray-500 text-white px-3 py-2 rounded-lg 
+                                     transition-colors duration-200 disabled:opacity-50 font-medium text-sm"
+                          >
+                            👁️ Spectate
+                          </button>
+                        </>
+                      )}
+                      {war.status === 'active' && (
                         <button
                           onClick={() => joinWar(war.id, true)}
                           disabled={loading}
-                          className="bg-gray-600 text-white px-3 py-1 rounded text-sm disabled:opacity-50"
+                          className="flex-1 bg-gray-600 hover:bg-gray-500 text-white px-3 py-2 rounded-lg 
+                                   transition-colors duration-200 disabled:opacity-50 font-medium text-sm"
                         >
-                          Spectate
+                          👁️ Spectate
                         </button>
-                      </>
-                    )}
-                    {war.status === 'active' && (
-                      <button
-                        onClick={() => joinWar(war.id, true)}
-                        disabled={loading}
-                        className="bg-gray-600 text-white px-3 py-1 rounded text-sm disabled:opacity-50"
-                      >
-                        Spectate
-                      </button>
-                    )}
+                      )}
+                    </div>
                   </div>
-                </div>
+                ))}
               </div>
-            ))
-          )}
+            )}
+          </div>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-3xl font-bold">{currentWar.name}</h1>
-          <p className="text-gray-600">
-            Status: {currentWar.status} | Turn: {currentWar.currentTurn} | 
-            Players: {currentWar.participants.filter(p => !p.isSpectator).length}
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <button
-            onClick={() => setCurrentWar(null)}
-            className="bg-gray-600 text-white px-4 py-2 rounded"
-          >
-            Back to Wars
-          </button>
-          {currentWar.status === 'active' && (
-            <button
-              onClick={advanceTurn}
-              disabled={loading}
-              className="bg-purple-600 text-white px-4 py-2 rounded disabled:opacity-50"
-            >
-              Advance Turn
-            </button>
-          )}
-        </div>
-      </div>
-
-      {message && (
-        <div className="mb-4 p-3 bg-blue-100 border border-blue-300 rounded">
-          {message}
-        </div>
-      )}
-
-      {/* Participants Grid */}
-      <div className="grid gap-4 mb-6">
-        <h2 className="text-xl font-bold">Participants</h2>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {currentWar.participants.map(participant => (
-            <div 
-              key={participant.id} 
-              className={`border rounded p-4 ${
-                participant.playerId === playerId ? 'border-blue-500 bg-blue-50' : 
-                participant.isEliminated ? 'border-red-300 bg-red-50' :
-                participant.isSpectator ? 'border-gray-300 bg-gray-50' : 'border-gray-300'
-              }`}
-            >
-              <div className="flex justify-between items-start mb-2">
-                <div>
-                  <h3 className="font-semibold">{participant.name}</h3>
-                  <p className="text-sm text-gray-600">{participant.playerName}</p>
-                  {participant.playerId === playerId && (
-                    <span className="text-xs bg-blue-200 px-2 py-1 rounded">You</span>
-                  )}
-                  {participant.isHost && (
-                    <span className="text-xs bg-yellow-200 px-2 py-1 rounded ml-1">Host</span>
-                  )}
-                  {participant.isSpectator && (
-                    <span className="text-xs bg-gray-200 px-2 py-1 rounded ml-1">Spectator</span>
-                  )}
-                  {participant.isEliminated && (
-                    <span className="text-xs bg-red-200 px-2 py-1 rounded ml-1">Eliminated</span>
-                  )}
-                </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
+      <div className="container mx-auto px-4 py-8">
+        {/* War Room Header */}
+        <div className="bg-slate-800/60 backdrop-blur-sm rounded-xl p-6 mb-8 border border-slate-600/30">
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-4xl font-bold text-white mb-2">⚔️ {currentWar.name}</h1>
+              <div className="flex flex-wrap gap-3 text-sm">
+                <span className={`px-3 py-1 rounded-full font-medium ${
+                  currentWar.status === 'active' ? 'bg-green-500/20 text-green-300 border border-green-500/30' :
+                  currentWar.status === 'waiting' ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30' :
+                  'bg-gray-500/20 text-gray-300 border border-gray-500/30'
+                }`}>
+                  {currentWar.status === 'active' ? '🔥 Active Battle' :
+                   currentWar.status === 'waiting' ? '⏳ Waiting for Players' : '✅ Completed'}
+                </span>
+                <span className="bg-purple-500/20 text-purple-300 px-3 py-1 rounded-full border border-purple-500/30">
+                  🎯 Turn {currentWar.currentTurn}
+                </span>
+                <span className="bg-blue-500/20 text-blue-300 px-3 py-1 rounded-full border border-blue-500/30">
+                  👥 {currentWar.participants.filter(p => !p.isSpectator).length} Nations
+                </span>
               </div>
-              
-              {!participant.isSpectator && (
-                <>
-                  <div className="text-sm space-y-1">
-                    <div className="flex justify-between">
-                      <span>Resistance:</span>
-                      <span className={participant.resistance <= 20 ? 'text-red-600 font-bold' : ''}>{participant.resistance}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>MAPs:</span>
-                      <span>{participant.currentMaps}/{participant.maxMaps}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Cities:</span>
-                      <span>{participant.cities}</span>
-                    </div>
-                  </div>
-                  
-                  <div className="mt-3 text-xs space-y-1">
-                    <div className="flex justify-between">
-                      <span>Soldiers:</span>
-                      <span>{participant.soldiers.toLocaleString()}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Tanks:</span>
-                      <span>{participant.tanks.toLocaleString()}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Aircraft:</span>
-                      <span>{participant.aircraft.toLocaleString()}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Ships:</span>
-                      <span>{participant.ships.toLocaleString()}</span>
-                    </div>
-                  </div>
-
-                  {/* Space Control */}
-                  {(participant.groundControl || participant.airSuperiority || participant.blockade || participant.fortified) && (
-                    <div className="mt-2 text-xs">
-                      <p className="font-medium">Space Control:</p>
-                      {participant.groundControl && <span className="bg-green-200 px-1 rounded mr-1">Ground</span>}
-                      {participant.airSuperiority && <span className="bg-blue-200 px-1 rounded mr-1">Air</span>}
-                      {participant.blockade && <span className="bg-purple-200 px-1 rounded mr-1">Blockade</span>}
-                      {participant.fortified && <span className="bg-orange-200 px-1 rounded mr-1">Fortified</span>}
-                    </div>
-                  )}
-                </>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setCurrentWar(null)}
+                className="bg-slate-700 hover:bg-slate-600 text-white px-6 py-2 rounded-lg 
+                         transition-colors duration-200 font-medium"
+              >
+                ← Back to Wars
+              </button>
+              {currentWar.status === 'active' && (
+                <button
+                  onClick={advanceTurn}
+                  disabled={loading}
+                  className="bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-500 hover:to-violet-500 
+                           text-white px-6 py-2 rounded-lg transition-all duration-200 disabled:opacity-50 
+                           font-medium shadow-lg"
+                >
+                  {loading ? '⏳' : '⏭️'} Advance Turn
+                </button>
               )}
             </div>
-          ))}
+          </div>
         </div>
-      </div>
 
-      {/* Battle Actions */}
-      {playerParticipant && !playerParticipant.isSpectator && !playerParticipant.isEliminated && currentWar.status === 'active' && (
-        <div className="border border-gray-300 rounded p-4">
-          <h3 className="text-lg font-bold mb-4">Battle Actions</h3>
-          
-          {/* Action Inputs */}
-          <div className="grid md:grid-cols-4 gap-4 mb-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">Soldiers</label>
-              <input
-                type="number"
-                min="0"
-                max={playerParticipant.soldiers}
-                value={actionInputs.soldiers}
-                onChange={e => setActionInputs(prev => ({ ...prev, soldiers: parseInt(e.target.value) || 0 }))}
-                className="w-full border border-gray-300 rounded px-2 py-1"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Tanks</label>
-              <input
-                type="number"
-                min="0"
-                max={playerParticipant.tanks}
-                value={actionInputs.tanks}
-                onChange={e => setActionInputs(prev => ({ ...prev, tanks: parseInt(e.target.value) || 0 }))}
-                className="w-full border border-gray-300 rounded px-2 py-1"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Aircraft</label>
-              <input
-                type="number"
-                min="0"
-                max={playerParticipant.aircraft}
-                value={actionInputs.aircraft}
-                onChange={e => setActionInputs(prev => ({ ...prev, aircraft: parseInt(e.target.value) || 0 }))}
-                className="w-full border border-gray-300 rounded px-2 py-1"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Ships</label>
-              <input
-                type="number"
-                min="0"
-                max={playerParticipant.ships}
-                value={actionInputs.ships}
-                onChange={e => setActionInputs(prev => ({ ...prev, ships: parseInt(e.target.value) || 0 }))}
-                className="w-full border border-gray-300 rounded px-2 py-1"
-              />
+        {/* Message Display */}
+        {message && (
+          <div className="mb-6">
+            <div className="bg-gradient-to-r from-blue-500/20 to-cyan-500/20 border border-blue-400/30 
+                          rounded-lg p-4 backdrop-blur-sm max-w-2xl mx-auto">
+              <p className="text-blue-100 text-center font-medium">{message}</p>
             </div>
           </div>
+        )}
 
-          {/* Target Selection for Airstrikes/Naval */}
-          <div className="mb-4">
-            <label className="block text-sm font-medium mb-1">Target (for airstrikes/naval)</label>
-            <select
-              value={selectedTarget}
-              onChange={e => setSelectedTarget(e.target.value)}
-              className="border border-gray-300 rounded px-2 py-1"
-            >
-              <option value="">Select target...</option>
-              <option value="aircraft">Aircraft</option>
-              <option value="soldiers">Soldiers</option>
-              <option value="tanks">Tanks</option>
-              <option value="ships">Ships</option>
-              <option value="infrastructure">Infrastructure</option>
-              <option value="ground_control">Ground Control</option>
-              <option value="air_superiority">Air Superiority</option>
-            </select>
-          </div>
-
-          {/* Targets */}
-          <div className="space-y-2">
-            <h4 className="font-medium">Available Targets:</h4>
-            {currentWar.participants
-              .filter(p => !p.isSpectator && !p.isEliminated && p.id !== playerParticipant.id)
-              .map(target => (
-                <div key={target.id} className="flex gap-2 items-center">
-                  <span className="flex-1">{target.name} ({target.playerName})</span>
-                  <button
-                    onClick={() => executeAction('ground_attack', target.id)}
-                    disabled={loading || playerParticipant.currentMaps < 3 || (actionInputs.soldiers + actionInputs.tanks) === 0}
-                    className="bg-red-600 text-white px-3 py-1 rounded text-sm disabled:opacity-50"
-                  >
-                    Ground Attack (3 MAPs)
-                  </button>
-                  <button
-                    onClick={() => executeAction('airstrike', target.id)}
-                    disabled={loading || playerParticipant.currentMaps < 4 || actionInputs.aircraft === 0 || !selectedTarget}
-                    className="bg-blue-600 text-white px-3 py-1 rounded text-sm disabled:opacity-50"
-                  >
-                    Airstrike (4 MAPs)
-                  </button>
-                  <button
-                    onClick={() => executeAction('naval_attack', target.id)}
-                    disabled={loading || playerParticipant.currentMaps < 4 || actionInputs.ships === 0 || !selectedTarget}
-                    className="bg-purple-600 text-white px-3 py-1 rounded text-sm disabled:opacity-50"
-                  >
-                    Naval Attack (4 MAPs)
-                  </button>
+        {/* Nations Grid */}
+        <div className="mb-8">
+          <h2 className="text-3xl font-bold text-white mb-6 text-center">🏛️ Nations in War</h2>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {currentWar.participants.map(participant => (
+              <div 
+                key={participant.id} 
+                className={`bg-slate-800/60 backdrop-blur-sm rounded-xl p-6 border transition-all duration-300 hover:shadow-xl ${
+                  participant.playerId === playerId ? 'border-blue-500/70 shadow-blue-500/20 shadow-lg' : 
+                  participant.isEliminated ? 'border-red-500/50 bg-red-900/20' :
+                  participant.isSpectator ? 'border-gray-500/30 opacity-75' : 'border-slate-600/30 hover:border-slate-500/50'
+                }`}
+              >
+                {/* Nation Header */}
+                <div className="mb-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-xl font-bold text-white">{participant.name}</h3>
+                    {participant.playerId === playerId && (
+                      <span className="text-xs bg-blue-500/30 text-blue-200 px-2 py-1 rounded-full border border-blue-500/50">
+                        👤 You
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-slate-300 text-sm mb-2">🎭 {participant.playerName}</p>
+                  
+                  {/* Status Badges */}
+                  <div className="flex flex-wrap gap-1">
+                    {participant.isHost && (
+                      <span className="text-xs bg-yellow-500/30 text-yellow-200 px-2 py-1 rounded-full border border-yellow-500/50">
+                        👑 Host
+                      </span>
+                    )}
+                    {participant.isSpectator && (
+                      <span className="text-xs bg-gray-500/30 text-gray-300 px-2 py-1 rounded-full border border-gray-500/50">
+                        👁️ Spectator
+                      </span>
+                    )}
+                    {participant.isEliminated && (
+                      <span className="text-xs bg-red-500/30 text-red-300 px-2 py-1 rounded-full border border-red-500/50">
+                        💀 Eliminated
+                      </span>
+                    )}
+                  </div>
                 </div>
-              ))}
+                
+                {!participant.isSpectator && (
+                  <>
+                    {/* Core Stats */}
+                    <div className="space-y-3 mb-4">
+                      <div className="bg-slate-700/50 rounded-lg p-3">
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="text-slate-300 font-medium">💗 Resistance</span>
+                          <span className={`font-bold text-lg ${
+                            participant.resistance <= 20 ? 'text-red-400' : 
+                            participant.resistance <= 50 ? 'text-yellow-400' : 'text-green-400'
+                          }`}>
+                            {participant.resistance}%
+                          </span>
+                        </div>
+                        <div className={`h-2 bg-slate-600 rounded-full overflow-hidden`}>
+                          <div 
+                            className={`h-full transition-all duration-500 ${
+                              participant.resistance <= 20 ? 'bg-red-500' : 
+                              participant.resistance <= 50 ? 'bg-yellow-500' : 'bg-green-500'
+                            }`}
+                            style={{ width: `${participant.resistance}%` }}
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-3 text-sm">
+                        <div className="bg-slate-700/50 rounded-lg p-2">
+                          <div className="text-slate-400">⚡ MAPs</div>
+                          <div className="text-white font-bold">{participant.currentMaps}/{participant.maxMaps}</div>
+                        </div>
+                        <div className="bg-slate-700/50 rounded-lg p-2">
+                          <div className="text-slate-400">🏙️ Cities</div>
+                          <div className="text-white font-bold">{participant.cities}</div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Military Forces */}
+                    <div className="bg-slate-700/30 rounded-lg p-3 mb-4">
+                      <h4 className="text-slate-300 font-medium mb-3">🛡️ Military Forces</h4>
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        <div className="flex justify-between">
+                          <span className="text-slate-400">🪖 Soldiers:</span>
+                          <span className="text-green-400 font-medium">{participant.soldiers.toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-slate-400">🚗 Tanks:</span>
+                          <span className="text-blue-400 font-medium">{participant.tanks.toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-slate-400">✈️ Aircraft:</span>
+                          <span className="text-purple-400 font-medium">{participant.aircraft.toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-slate-400">🚢 Ships:</span>
+                          <span className="text-cyan-400 font-medium">{participant.ships.toLocaleString()}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Space Control */}
+                    {(participant.groundControl || participant.airSuperiority || participant.blockade || participant.fortified) && (
+                      <div className="bg-slate-700/30 rounded-lg p-3">
+                        <h4 className="text-slate-300 font-medium mb-2">🎯 Space Control</h4>
+                        <div className="flex flex-wrap gap-1">
+                          {participant.groundControl && (
+                            <span className="bg-green-500/30 text-green-300 px-2 py-1 rounded-full text-xs border border-green-500/50">
+                              🌍 Ground
+                            </span>
+                          )}
+                          {participant.airSuperiority && (
+                            <span className="bg-blue-500/30 text-blue-300 px-2 py-1 rounded-full text-xs border border-blue-500/50">
+                              ✈️ Air
+                            </span>
+                          )}
+                          {participant.blockade && (
+                            <span className="bg-purple-500/30 text-purple-300 px-2 py-1 rounded-full text-xs border border-purple-500/50">
+                              🚢 Blockade
+                            </span>
+                          )}
+                          {participant.fortified && (
+                            <span className="bg-orange-500/30 text-orange-300 px-2 py-1 rounded-full text-xs border border-orange-500/50">
+                              🏰 Fortified
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            ))}
           </div>
         </div>
-      )}
+
+        {/* Battle Actions */}
+        {playerParticipant && !playerParticipant.isSpectator && !playerParticipant.isEliminated && currentWar.status === 'active' && (
+          <div className="bg-slate-800/60 backdrop-blur-sm rounded-xl p-6 border border-slate-600/30">
+            <h3 className="text-2xl font-bold text-white mb-6 text-center">⚔️ Battle Command Center</h3>
+            
+            {/* Action Inputs */}
+            <div className="grid md:grid-cols-4 gap-4 mb-6">
+              <div className="bg-slate-700/50 rounded-lg p-4">
+                <label className="block text-sm font-medium text-slate-300 mb-2">🪖 Soldiers</label>
+                <input
+                  type="number"
+                  min="0"
+                  max={playerParticipant.soldiers}
+                  value={actionInputs.soldiers}
+                  onChange={e => setActionInputs(prev => ({ ...prev, soldiers: parseInt(e.target.value) || 0 }))}
+                  className="w-full bg-slate-600 border border-slate-500 rounded-lg px-3 py-2 text-white 
+                           focus:border-blue-400 focus:outline-none transition-colors"
+                  placeholder="0"
+                />
+                <p className="text-xs text-slate-400 mt-1">Max: {playerParticipant.soldiers.toLocaleString()}</p>
+              </div>
+              <div className="bg-slate-700/50 rounded-lg p-4">
+                <label className="block text-sm font-medium text-slate-300 mb-2">🚗 Tanks</label>
+                <input
+                  type="number"
+                  min="0"
+                  max={playerParticipant.tanks}
+                  value={actionInputs.tanks}
+                  onChange={e => setActionInputs(prev => ({ ...prev, tanks: parseInt(e.target.value) || 0 }))}
+                  className="w-full bg-slate-600 border border-slate-500 rounded-lg px-3 py-2 text-white 
+                           focus:border-blue-400 focus:outline-none transition-colors"
+                  placeholder="0"
+                />
+                <p className="text-xs text-slate-400 mt-1">Max: {playerParticipant.tanks.toLocaleString()}</p>
+              </div>
+              <div className="bg-slate-700/50 rounded-lg p-4">
+                <label className="block text-sm font-medium text-slate-300 mb-2">✈️ Aircraft</label>
+                <input
+                  type="number"
+                  min="0"
+                  max={playerParticipant.aircraft}
+                  value={actionInputs.aircraft}
+                  onChange={e => setActionInputs(prev => ({ ...prev, aircraft: parseInt(e.target.value) || 0 }))}
+                  className="w-full bg-slate-600 border border-slate-500 rounded-lg px-3 py-2 text-white 
+                           focus:border-blue-400 focus:outline-none transition-colors"
+                  placeholder="0"
+                />
+                <p className="text-xs text-slate-400 mt-1">Max: {playerParticipant.aircraft.toLocaleString()}</p>
+              </div>
+              <div className="bg-slate-700/50 rounded-lg p-4">
+                <label className="block text-sm font-medium text-slate-300 mb-2">🚢 Ships</label>
+                <input
+                  type="number"
+                  min="0"
+                  max={playerParticipant.ships}
+                  value={actionInputs.ships}
+                  onChange={e => setActionInputs(prev => ({ ...prev, ships: parseInt(e.target.value) || 0 }))}
+                  className="w-full bg-slate-600 border border-slate-500 rounded-lg px-3 py-2 text-white 
+                           focus:border-blue-400 focus:outline-none transition-colors"
+                  placeholder="0"
+                />
+                <p className="text-xs text-slate-400 mt-1">Max: {playerParticipant.ships.toLocaleString()}</p>
+              </div>
+            </div>
+
+            {/* Target Selection */}
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-slate-300 mb-2">🎯 Target Selection (for airstrikes/naval)</label>
+              <select
+                value={selectedTarget}
+                onChange={e => setSelectedTarget(e.target.value)}
+                className="w-full md:w-auto bg-slate-600 border border-slate-500 rounded-lg px-3 py-2 text-white 
+                         focus:border-blue-400 focus:outline-none transition-colors"
+              >
+                <option value="">Select target...</option>
+                <option value="aircraft">✈️ Aircraft</option>
+                <option value="soldiers">🪖 Soldiers</option>
+                <option value="tanks">🚗 Tanks</option>
+                <option value="ships">🚢 Ships</option>
+                <option value="infrastructure">🏭 Infrastructure</option>
+                <option value="ground_control">🌍 Ground Control</option>
+                <option value="air_superiority">☁️ Air Superiority</option>
+              </select>
+            </div>
+
+            {/* Available Targets */}
+            <div className="space-y-4">
+              <h4 className="text-lg font-medium text-white mb-4">🎯 Available Enemy Nations:</h4>
+              {currentWar.participants
+                .filter(p => !p.isSpectator && !p.isEliminated && p.id !== playerParticipant.id)
+                .map(target => (
+                  <div key={target.id} className="bg-slate-700/50 rounded-lg p-4 border border-slate-600/50">
+                    <div className="flex flex-col lg:flex-row lg:items-center gap-4">
+                      <div className="flex-1">
+                        <h5 className="text-white font-medium">{target.name}</h5>
+                        <p className="text-slate-400 text-sm">🎭 {target.playerName}</p>
+                        <p className="text-slate-400 text-sm">💗 Resistance: {target.resistance}%</p>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          onClick={() => executeAction('ground_attack', target.id)}
+                          disabled={loading || playerParticipant.currentMaps < 3 || (actionInputs.soldiers + actionInputs.tanks) === 0}
+                          className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 
+                                   text-white px-4 py-2 rounded-lg text-sm disabled:opacity-50 disabled:cursor-not-allowed 
+                                   transition-all duration-200 font-medium shadow-lg"
+                        >
+                          ⚔️ Ground Attack (3 MAPs)
+                        </button>
+                        <button
+                          onClick={() => executeAction('airstrike', target.id)}
+                          disabled={loading || playerParticipant.currentMaps < 4 || actionInputs.aircraft === 0 || !selectedTarget}
+                          className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 
+                                   text-white px-4 py-2 rounded-lg text-sm disabled:opacity-50 disabled:cursor-not-allowed 
+                                   transition-all duration-200 font-medium shadow-lg"
+                        >
+                          ✈️ Airstrike (4 MAPs)
+                        </button>
+                        <button
+                          onClick={() => executeAction('naval_attack', target.id)}
+                          disabled={loading || playerParticipant.currentMaps < 4 || actionInputs.ships === 0 || !selectedTarget}
+                          className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 
+                                   text-white px-4 py-2 rounded-lg text-sm disabled:opacity-50 disabled:cursor-not-allowed 
+                                   transition-all duration-200 font-medium shadow-lg"
+                        >
+                          🚢 Naval Attack (4 MAPs)
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   )
 }
