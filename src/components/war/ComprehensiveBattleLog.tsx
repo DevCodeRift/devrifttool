@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 
 interface BattleLogEntry {
   id: string
@@ -93,11 +93,7 @@ export default function ComprehensiveBattleLog({ warId, playerId, limit = 50 }: 
   const [error, setError] = useState('')
   const [expandedEntries, setExpandedEntries] = useState<Set<string>>(new Set())
 
-  useEffect(() => {
-    loadBattleLog()
-  }, [warId, playerId, limit])
-
-  const loadBattleLog = async () => {
+  const loadBattleLog = useCallback(async () => {
     setLoading(true)
     try {
       const params = new URLSearchParams()
@@ -112,11 +108,15 @@ export default function ComprehensiveBattleLog({ warId, playerId, limit = 50 }: 
       } else {
         setError('Failed to load battle log')
       }
-    } catch (err) {
+    } catch {
       setError('Error loading battle log')
     }
     setLoading(false)
-  }
+  }, [warId, playerId, limit])
+
+  useEffect(() => {
+    loadBattleLog()
+  }, [loadBattleLog])
 
   const toggleExpanded = (entryId: string) => {
     const newExpanded = new Set(expandedEntries)

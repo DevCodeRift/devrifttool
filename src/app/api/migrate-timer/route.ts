@@ -17,7 +17,7 @@ export async function POST() {
     console.log('Checking if last_turn_at column exists...')
 
     // Try to select from wars with last_turn_at to check if column exists
-    const { data: testData, error: testError } = await supabaseAdmin
+    const { error: testError } = await supabaseAdmin
       .from('wars')
       .select('id, last_turn_at')
       .limit(1)

@@ -172,7 +172,7 @@ export default function WarSimulatorV2() {
     const timerInterval = setInterval(updateTimer, 1000)
 
     return () => clearInterval(timerInterval)
-  }, [currentWar?.lastTurnAt, currentWar?.status, currentWar?.turnDuration])
+  }, [currentWar?.lastTurnAt, currentWar?.status, currentWar?.turnDuration]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Auto-advance polling every 5 seconds for all active wars
   useEffect(() => {

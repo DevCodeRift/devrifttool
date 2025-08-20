@@ -121,7 +121,7 @@ export default function WarHistoryPage() {
             ].map(filterOption => (
               <button
                 key={filterOption.key}
-                onClick={() => setFilter(filterOption.key as any)}
+                onClick={() => setFilter(filterOption.key as 'all' | 'active' | 'completed')}
                 className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
                   filter === filterOption.key
                     ? 'bg-blue-600 text-white shadow-lg'
