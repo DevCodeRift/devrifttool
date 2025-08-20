@@ -233,8 +233,12 @@ export async function POST(request: NextRequest) {
 
       // Use custom military if provided, otherwise calculate defaults
       let militaryValues
+      let cityCount = 10 // default city count
+      
       if (customMilitary) {
         militaryValues = customMilitary
+        // Use cities from custom military if provided, otherwise default
+        cityCount = customMilitary.cities || 10
       } else {
         // Calculate max military based on default cities (10)
         const cities = 10
@@ -249,6 +253,7 @@ export async function POST(request: NextRequest) {
           aircraft: Math.floor(maxAircraft * 0.8),
           ships: Math.floor(maxShips * 0.8)
         }
+        cityCount = cities
       }
 
       // Add creator as first participant
@@ -264,7 +269,7 @@ export async function POST(request: NextRequest) {
           tanks: militaryValues.tanks,
           aircraft: militaryValues.aircraft,
           ships: militaryValues.ships,
-          cities: 10,
+          cities: cityCount,
           resistance: 100,
           current_maps: 6,
           max_maps: 12,
@@ -321,8 +326,12 @@ export async function POST(request: NextRequest) {
 
       // Use custom military if provided, otherwise calculate defaults
       let militaryValues
+      let cityCount = 10 // default city count
+      
       if (customMilitary && !asSpectator) {
         militaryValues = customMilitary
+        // Use cities from custom military if provided, otherwise default
+        cityCount = customMilitary.cities || 10
       } else if (!asSpectator) {
         // Calculate military for new participant
         const cities = 10
@@ -337,6 +346,7 @@ export async function POST(request: NextRequest) {
           aircraft: Math.floor(maxAircraft * 0.8),
           ships: Math.floor(maxShips * 0.8)
         }
+        cityCount = cities
       } else {
         // Spectator has no military
         militaryValues = {
@@ -345,6 +355,7 @@ export async function POST(request: NextRequest) {
           aircraft: 0,
           ships: 0
         }
+        cityCount = 0
       }
 
       // Add participant
@@ -360,7 +371,7 @@ export async function POST(request: NextRequest) {
           tanks: militaryValues.tanks,
           aircraft: militaryValues.aircraft,
           ships: militaryValues.ships,
-          cities: asSpectator ? 0 : 10,
+          cities: cityCount,
           resistance: asSpectator ? 0 : 100,
           current_maps: asSpectator ? 0 : 6,
           max_maps: asSpectator ? 0 : 12,

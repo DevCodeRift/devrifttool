@@ -353,7 +353,47 @@ export async function POST(request: NextRequest) {
       defenderCasualties: battleResult.defenderCasualties,
       resistanceDamage: battleResult.resistanceDamage,
       defenderEliminated: newDefenderResistance <= 0,
-      message: `${battleResult.victoryType.replace('_', ' ')} - ${battleResult.rollsWon}/3 rolls won`
+      message: `${battleResult.victoryType.replace('_', ' ')} - ${battleResult.rollsWon}/3 rolls won`,
+      detailedResult: {
+        attackerName: attacker.nation_name,
+        defenderName: defender.nation_name,
+        actionType,
+        target,
+        preActionState: {
+          attacker: {
+            soldiers: attacker.soldiers,
+            tanks: attacker.tanks,
+            aircraft: attacker.aircraft,
+            ships: attacker.ships,
+            resistance: attacker.resistance,
+            maps: attacker.current_maps
+          },
+          defender: {
+            soldiers: defender.soldiers,
+            tanks: defender.tanks,
+            aircraft: defender.aircraft,
+            ships: defender.ships,
+            resistance: defender.resistance
+          }
+        },
+        postActionState: {
+          attacker: {
+            soldiers: newAttackerSoldiers,
+            tanks: newAttackerTanks,
+            aircraft: newAttackerAircraft,
+            ships: newAttackerShips,
+            maps: newAttackerMaps
+          },
+          defender: {
+            soldiers: newDefenderSoldiers,
+            tanks: newDefenderTanks,
+            aircraft: newDefenderAircraft,
+            ships: newDefenderShips,
+            resistance: newDefenderResistance,
+            eliminated: newDefenderResistance <= 0
+          }
+        }
+      }
     })
 
   } catch (error) {

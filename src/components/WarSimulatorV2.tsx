@@ -2,7 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import { useSession, signOut } from 'next-auth/react'
-import { War, Nation, ActionType, ExecuteActionRequest } from '@/types/war-v2'
+import { War, Nation, ActionType, ExecuteActionRequest, BattleResult } from '@/types/war-v2'
+import BattleResultDisplay from '@/components/war/BattleResultDisplay'
+import ComprehensiveBattleLog from '@/components/war/ComprehensiveBattleLog'
 
 // Type for nation data from P&W API
 interface NationData {
@@ -51,6 +53,16 @@ export default function WarSimulatorV2() {
   // Timer state
   const [timeRemaining, setTimeRemaining] = useState<number>(0)
   const [isTimerActive, setIsTimerActive] = useState(false)
+  
+  // Battle result display state
+  const [lastBattleResult, setLastBattleResult] = useState<{
+    result: BattleResult
+    attackerName: string
+    defenderName: string
+    actionType: string
+    target?: string
+  } | null>(null)
+  const [showBattleLog, setShowBattleLog] = useState(false)
 
   const loadWars = async () => {
     try {
@@ -238,10 +250,15 @@ export default function WarSimulatorV2() {
         soldiers: nationData.soldiers,
         tanks: nationData.tanks,
         aircraft: nationData.aircraft,
-        ships: nationData.ships
+        ships: nationData.ships,
+        cities: nationData.cities
       }
     } else {
-      return calculateMaximumMilitary(nationData.cities)
+      const maxMilitary = calculateMaximumMilitary(nationData.cities)
+      return {
+        ...maxMilitary,
+        cities: nationData.cities
+      }
     }
   }
 
@@ -412,6 +429,18 @@ export default function WarSimulatorV2() {
       if (response.ok) {
         const result = await response.json()
         setMessage(result.message)
+        
+        // Store detailed battle result for display
+        if (result.battleResult && result.detailedResult) {
+          setLastBattleResult({
+            result: result.battleResult,
+            attackerName: result.detailedResult.attackerName,
+            defenderName: result.detailedResult.defenderName,
+            actionType: result.detailedResult.actionType,
+            target: result.detailedResult.target
+          })
+        }
+        
         setActionInputs({ soldiers: 0, tanks: 0, aircraft: 0, ships: 0 })
         setSelectedTarget('')
         loadWar(currentWar.id)
@@ -421,28 +450,6 @@ export default function WarSimulatorV2() {
       }
     } catch {
       setMessage('Error executing action')
-    }
-    setLoading(false)
-  }
-
-  const advanceTurn = async () => {
-    if (!currentWar) return
-
-    setLoading(true)
-    try {
-      const response = await fetch('/api/wars-v2/advance-turn', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ warId: currentWar.id })
-      })
-
-      if (response.ok) {
-        const result = await response.json()
-        setMessage(result.message)
-        loadWar(currentWar.id)
-      }
-    } catch {
-      setMessage('Error advancing turn')
     }
     setLoading(false)
   }
@@ -1064,17 +1071,6 @@ export default function WarSimulatorV2() {
               >
                 🔄 Refresh
               </button>
-              {currentWar.status === 'active' && (
-                <button
-                  onClick={advanceTurn}
-                  disabled={loading}
-                  className="bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-500 hover:to-violet-500 
-                           text-white px-6 py-2 rounded-lg transition-all duration-200 disabled:opacity-50 
-                           font-medium shadow-lg"
-                >
-                  {loading ? '⏳' : '⏭️'} Advance Turn
-                </button>
-              )}
             </div>
           </div>
         </div>
@@ -1086,6 +1082,37 @@ export default function WarSimulatorV2() {
                           rounded-lg p-4 backdrop-blur-sm max-w-2xl mx-auto">
               <p className="text-blue-100 text-center font-medium">{message}</p>
             </div>
+          </div>
+        )}
+
+        {/* Battle Log Toggle */}
+        <div className="mb-6 text-center">
+          <button
+            onClick={() => setShowBattleLog(!showBattleLog)}
+            className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 
+                     text-white px-6 py-2 rounded-lg transition-all duration-200 font-medium shadow-lg"
+          >
+            {showBattleLog ? '🔼 Hide Battle Log' : '📜 Show Battle Log'}
+          </button>
+        </div>
+
+        {/* Battle Log Display */}
+        {showBattleLog && (
+          <div className="mb-8">
+            <ComprehensiveBattleLog warId={currentWar.id} limit={20} />
+          </div>
+        )}
+
+        {/* Detailed Battle Result Display */}
+        {lastBattleResult && (
+          <div className="mb-8">
+            <BattleResultDisplay
+              battleResult={lastBattleResult.result}
+              attackerName={lastBattleResult.attackerName}
+              defenderName={lastBattleResult.defenderName}
+              actionType={lastBattleResult.actionType}
+              target={lastBattleResult.target}
+            />
           </div>
         )}
 

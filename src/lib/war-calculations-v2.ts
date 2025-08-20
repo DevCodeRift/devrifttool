@@ -115,7 +115,7 @@ export class WarCalculationsV2 {
   }
 
   /**
-   * GROUND BATTLE - Using exact P&W formulas
+   * GROUND BATTLE - Using exact P&W formulas with detailed calculation breakdown
    */
   calculateGroundBattle(
     attacker: Nation,
@@ -193,6 +193,30 @@ export class WarCalculationsV2 {
       spaceControlLost = 'fortified'
     }
 
+    // Build detailed calculation breakdown
+    const calculationDetails = {
+      attackerStrength,
+      defenderStrength,
+      fortificationBonus: fortifyFactor,
+      airSuperiorityFactor,
+      rollValue: roll,
+      strengthFactors: {
+        attFactor,
+        defFactor
+      },
+      damageCalculations: {
+        tankLossFormula: `Def Tank Loss: floor(min(${defender.tanks}, ((${attTankStr} * 0.7 + 1) / ${defFactor} + (${attSoldStr} * 0.7 + 1) / 2250) * 1.33)) = ${defTankLoss}`,
+        soldierLossFormula: `Def Soldier Loss: floor(min(${defender.soldiers}, ((${attSoldStr} * 0.7 + 1) / 22 + (${attTankStr} * 0.7 + 1) / 7.33) * 0.3125)) = ${defSoldierLoss}`,
+        resistanceFormula: `Resistance: ${battleOutcome.victoryType} = ${resistanceDamage} resistance damage`
+      },
+      modifiers: {
+        fortified: defender.fortified,
+        airSuperiority: attacker.airSuperiority,
+        groundControl: attacker.groundControl,
+        blockade: attacker.blockade
+      }
+    }
+
     return {
       victoryType: battleOutcome.victoryType,
       rollsWon: battleOutcome.rollsWon,
@@ -213,12 +237,13 @@ export class WarCalculationsV2 {
         ships: 0
       },
       spaceControlGained,
-      spaceControlLost
+      spaceControlLost,
+      calculationDetails
     }
   }
 
   /**
-   * AIR BATTLE - Using exact P&W formulas
+   * AIR BATTLE - Using exact P&W formulas with detailed calculation breakdown
    */
   calculateAirBattle(
     attacker: Nation,
@@ -246,6 +271,8 @@ export class WarCalculationsV2 {
     const defenderCasualties = { soldiers: 0, tanks: 0, aircraft: 0, ships: 0 }
     const attackerCasualties = { soldiers: 0, tanks: 0, aircraft: 0, ships: 0 }
 
+    let targetDamageFormula = ""
+
     if (target === 'aircraft') {
       // Dogfight - Air vs Air combat
       let attAirLoss = 0
@@ -262,6 +289,8 @@ export class WarCalculationsV2 {
       attAirLoss = Math.floor(attAirLoss * fortifyFactor)
       attackerCasualties.aircraft = Math.min(aircraft, attAirLoss)
       defenderCasualties.aircraft = Math.min(defender.aircraft, defAirLoss)
+      
+      targetDamageFormula = `Dogfight: Att Aircraft Loss = floor((${battleOutcome.defenderRolls.join(" + ")} roll damage) * ${fortifyFactor} fortify) = ${attAirLoss}, Def Aircraft Loss = floor(${battleOutcome.attackerRolls.join(" + ")} roll damage) = ${defAirLoss}`
     } else {
       // Air vs Ground targets
       switch (target) {
@@ -274,6 +303,7 @@ export class WarCalculationsV2 {
             )
           ), 0))
           defenderCasualties.soldiers = Math.min(defender.soldiers, soldiersKilled)
+          targetDamageFormula = `Soldiers: min(${defender.soldiers}, min(${defender.soldiers} * 0.75 + 1000, (${aircraft} - ${defenderStrength} * 0.5) * 35 * ${randFactor.toFixed(3)})) = ${soldiersKilled}`
           break
           
         case 'tanks':
@@ -285,6 +315,7 @@ export class WarCalculationsV2 {
             )
           ), 0))
           defenderCasualties.tanks = Math.min(defender.tanks, tanksKilled)
+          targetDamageFormula = `Tanks: min(${defender.tanks}, min(${defender.tanks} * 0.75 + 10, (${aircraft} - ${defenderStrength} * 0.5) * 1.25 * ${randFactor.toFixed(3)})) = ${tanksKilled}`
           break
           
         case 'ships':
@@ -296,6 +327,7 @@ export class WarCalculationsV2 {
             )
           ), 0))
           defenderCasualties.ships = Math.min(defender.ships, shipsKilled)
+          targetDamageFormula = `Ships: min(${defender.ships}, min(${defender.ships} * 0.5 + 4, (${aircraft} - ${defenderStrength} * 0.5) * 0.0285 * ${randFactor.toFixed(3)})) = ${shipsKilled}`
           break
       }
 
@@ -330,6 +362,30 @@ export class WarCalculationsV2 {
       spaceControlGained = 'air_superiority'
     }
 
+    // Build detailed calculation breakdown
+    const calculationDetails = {
+      attackerStrength,
+      defenderStrength,
+      fortificationBonus: fortifyFactor,
+      airSuperiorityFactor: 1, // N/A for air battles
+      rollValue: battleOutcome.rollValue,
+      strengthFactors: {
+        attFactor: attackerStrength,
+        defFactor: defenderStrength
+      },
+      damageCalculations: {
+        tankLossFormula: target === 'aircraft' ? 'N/A - Dogfight' : 'Aircraft casualties calculated per roll',
+        soldierLossFormula: targetDamageFormula,
+        resistanceFormula: `Airstrike: ${battleOutcome.victoryType} = ${resistanceDamage} resistance damage`
+      },
+      modifiers: {
+        fortified: defender.fortified,
+        airSuperiority: attacker.airSuperiority,
+        groundControl: attacker.groundControl,
+        blockade: attacker.blockade
+      }
+    }
+
     return {
       victoryType: battleOutcome.victoryType,
       rollsWon: battleOutcome.rollsWon,
@@ -339,12 +395,13 @@ export class WarCalculationsV2 {
       infrastructureDamage: infraDamage,
       attackerCasualties,
       defenderCasualties,
-      spaceControlGained
+      spaceControlGained,
+      calculationDetails
     }
   }
 
   /**
-   * NAVAL BATTLE - Using exact P&W formulas
+   * NAVAL BATTLE - Using exact P&W formulas with detailed calculation breakdown
    */
   calculateNavalBattle(
     attacker: Nation,
@@ -414,6 +471,30 @@ export class WarCalculationsV2 {
       }
     }
 
+    // Build detailed calculation breakdown
+    const calculationDetails = {
+      attackerStrength,
+      defenderStrength,
+      fortificationBonus: fortifyFactor,
+      airSuperiorityFactor: 1, // N/A for naval battles
+      rollValue: battleOutcome.rollValue,
+      strengthFactors: {
+        attFactor: attackerStrength,
+        defFactor: defenderStrength
+      },
+      damageCalculations: {
+        tankLossFormula: `Naval vs ${target}: Ship Damage Multiplier = ${shipDamageMultiplier}`,
+        soldierLossFormula: `Def Ship Loss: floor(min(${defender.ships}, ${ships} / (7.08 / ${shipDamageMultiplier}))) = ${defShipLoss}`,
+        resistanceFormula: `Naval Attack: ${battleOutcome.victoryType} = ${resistanceDamage} resistance damage`
+      },
+      modifiers: {
+        fortified: defender.fortified,
+        airSuperiority: attacker.airSuperiority,
+        groundControl: attacker.groundControl,
+        blockade: attacker.blockade
+      }
+    }
+
     return {
       victoryType: battleOutcome.victoryType,
       rollsWon: battleOutcome.rollsWon,
@@ -424,7 +505,8 @@ export class WarCalculationsV2 {
       attackerCasualties: { soldiers: 0, tanks: 0, aircraft: 0, ships: attShipLoss },
       defenderCasualties: { soldiers: 0, tanks: 0, aircraft: 0, ships: defShipLoss },
       spaceControlGained,
-      spaceControlLost
+      spaceControlLost,
+      calculationDetails
     }
   }
 

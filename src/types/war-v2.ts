@@ -64,6 +64,30 @@ export interface BattleResult {
   }
   spaceControlGained?: string
   spaceControlLost?: string
+  
+  // Detailed calculation breakdown
+  calculationDetails?: {
+    attackerStrength: number
+    defenderStrength: number
+    fortificationBonus: number
+    airSuperiorityFactor: number
+    rollValue: number
+    strengthFactors: {
+      attFactor: number
+      defFactor: number
+    }
+    damageCalculations: {
+      tankLossFormula: string
+      soldierLossFormula: string
+      resistanceFormula: string
+    }
+    modifiers: {
+      fortified: boolean
+      airSuperiority: boolean
+      groundControl: boolean
+      blockade: boolean
+    }
+  }
 }
 
 export interface War {
@@ -135,6 +159,7 @@ export interface CreateWarRequest {
     tanks: number
     aircraft: number
     ships: number
+    cities?: number
   }
 }
 
@@ -149,6 +174,7 @@ export interface JoinWarRequest {
     tanks: number
     aircraft: number
     ships: number
+    cities?: number
   }
 }
 
