@@ -43,11 +43,16 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    return NextResponse.json({ 
-      success: true, 
-      nation: nationData.nations[0],
-      timestamp: new Date().toISOString()
-    })
+    // Transform the data to match what the frontend expects
+    const nation = nationData.nations[0]
+    const transformedNation = {
+      nation_name: nation.nation_name,
+      leader_name: nation.leader_name,
+      cities: nation.num_cities,
+      score: nation.score
+    }
+
+    return NextResponse.json(transformedNation)
 
   } catch (error) {
     console.error('Politics and War API error:', error)

@@ -47,11 +47,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    return NextResponse.json({ 
-      success: true, 
-      alliance: allianceData.alliances[0],
-      timestamp: new Date().toISOString()
-    })
+    return NextResponse.json(allianceData.alliances[0])
 
   } catch (error) {
     console.error('Politics and War API error:', error)
