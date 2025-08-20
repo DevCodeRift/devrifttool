@@ -169,7 +169,7 @@ export default function WarSimulatorV2() {
     }, 5000)
 
     return () => clearInterval(autoAdvanceInterval)
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadWar = async (warId: string) => {
     try {
@@ -1037,7 +1037,7 @@ export default function WarSimulatorV2() {
                 <span className="bg-blue-500/20 text-blue-300 px-3 py-1 rounded-full border border-blue-500/30">
                   👥 {currentWar.participants.filter(p => !p.isSpectator).length} Nations
                 </span>
-                {currentWar.status === 'active' && (
+                {currentWar.status === 'active' && isTimerActive && (
                   <span className={`px-3 py-1 rounded-full border font-mono ${
                     timeRemaining <= 10 ? 'bg-red-500/20 text-red-300 border-red-500/30 animate-pulse' :
                     timeRemaining <= 30 ? 'bg-orange-500/20 text-orange-300 border-orange-500/30' :

@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 
 const supabase = supabaseAdmin
@@ -20,6 +20,14 @@ export async function POST() {
       .not('last_turn_at', 'is', null)
 
     if (warsError) {
+      // Check if it's the missing column error
+      if (warsError.message.includes('does not exist')) {
+        return NextResponse.json({ 
+          error: 'Database migration required',
+          message: 'Column last_turn_at does not exist. Please run migration first.',
+          advanced: 0
+        }, { status: 400 })
+      }
       console.error('Error fetching wars for auto-advance:', warsError)
       return NextResponse.json({ error: 'Failed to fetch wars' }, { status: 500 })
     }

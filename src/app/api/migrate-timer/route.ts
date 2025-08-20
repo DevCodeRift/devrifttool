@@ -14,32 +14,27 @@ export async function POST() {
       return NextResponse.json({ error: 'Database connection not available' }, { status: 500 })
     }
 
-    console.log('Adding last_turn_at column to wars table...')
+    console.log('Checking if last_turn_at column exists...')
 
-    // Add the column using direct SQL
-    const { error: addColumnError } = await supabaseAdmin
+    // Try to select from wars with last_turn_at to check if column exists
+    const { data: testData, error: testError } = await supabaseAdmin
       .from('wars')
-      .select('last_turn_at')
+      .select('id, last_turn_at')
       .limit(1)
 
-    if (addColumnError && addColumnError.message.includes('does not exist')) {
-      // Column doesn't exist, add it
-      const { error } = await supabaseAdmin.rpc('exec_sql', {
-        sql_query: 'ALTER TABLE wars ADD COLUMN last_turn_at TIMESTAMP;'
-      })
-
-      if (error) {
-        console.error('Error adding column:', error)
-        return NextResponse.json({ error: 'Failed to add column', details: error }, { status: 500 })
-      }
-
-      console.log('Column added successfully!')
-    } else if (!addColumnError) {
-      console.log('Column already exists!')
-    } else {
-      console.error('Unexpected error checking column:', addColumnError)
-      return NextResponse.json({ error: 'Failed to check column', details: addColumnError }, { status: 500 })
+    if (testError && testError.message.includes('does not exist')) {
+      console.log('Column does not exist, manual fix needed')
+      return NextResponse.json({ 
+        error: 'Column last_turn_at does not exist',
+        message: 'Please run: ALTER TABLE wars ADD COLUMN last_turn_at TIMESTAMP; manually in your database',
+        sql: 'ALTER TABLE wars ADD COLUMN last_turn_at TIMESTAMP;'
+      }, { status: 400 })
+    } else if (testError) {
+      console.error('Unexpected error:', testError)
+      return NextResponse.json({ error: 'Database error', details: testError }, { status: 500 })
     }
+
+    console.log('Column exists! Updating existing active wars...')
 
     // Update existing active wars
     const { error: updateError } = await supabaseAdmin
@@ -56,7 +51,7 @@ export async function POST() {
     console.log('Migration completed successfully!')
     return NextResponse.json({ 
       success: true,
-      message: 'Successfully added last_turn_at column and updated existing wars'
+      message: 'Column exists and active wars updated successfully'
     })
 
   } catch (error) {
